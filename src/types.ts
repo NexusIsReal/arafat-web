@@ -7,6 +7,7 @@ export interface SchoolInfo {
   phone: string;
   email: string;
   eiin: string;
+  facebook?: string;
 }
 
 export interface User {

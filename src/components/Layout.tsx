@@ -127,6 +127,13 @@ export default function Layout() {
               <li>Phone: {db.school.phone}</li>
               <li>Email: {db.school.email}</li>
               <li>EIIN: {db.school.eiin}</li>
+              {db.school.facebook && (
+                <li>
+                  <a href={db.school.facebook} target="_blank" rel="noreferrer" className="text-blue-300 hover:text-white hover:underline">
+                    Facebook Page ↗
+                  </a>
+                </li>
+              )}
             </ul>
           </div>
         </div>

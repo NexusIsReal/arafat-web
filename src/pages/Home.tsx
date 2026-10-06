@@ -201,7 +201,7 @@ export default function Home() {
         {/* Contact */}
         <div className="mt-14">
           <SectionTitle title="Contact Us" sub="যোগাযোগ" />
-          <Card className="grid gap-6 p-6 sm:grid-cols-3 sm:p-8">
+          <Card className="grid gap-6 p-6 sm:grid-cols-4 sm:p-8">
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-indigo-600">Address</p>
               <p className="mt-1 text-slate-700">{db.school.address}</p>
@@ -212,8 +212,16 @@ export default function Home() {
             </div>
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-indigo-600">Email</p>
-              <p className="mt-1 text-slate-700">{db.school.email}</p>
+              <p className="mt-1 break-all text-slate-700">{db.school.email}</p>
             </div>
+            {db.school.facebook && (
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-indigo-600">Facebook</p>
+                <a href={db.school.facebook} target="_blank" rel="noreferrer" className="mt-1 inline-block font-medium text-blue-600 hover:underline">
+                  facebook.com/sjscb ↗
+                </a>
+              </div>
+            )}
           </Card>
         </div>
       </div>

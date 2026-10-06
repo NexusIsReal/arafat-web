@@ -3,6 +3,7 @@ import { db } from './db.mjs';
 const DEMO_VIDEO = 'https://www.youtube.com/embed/ZM8ECpBuQYE';
 
 const SUBJECT_META = {
+  ban: { name: 'বাংলা (Bangla)', code: 'BAN', color: 'from-red-500 to-rose-400' },
   phy: { name: 'পদার্থবিজ্ঞান (Physics)', code: 'PHY', color: 'from-blue-500 to-cyan-400' },
   chem: { name: 'রসায়ন (Chemistry)', code: 'CHEM', color: 'from-emerald-500 to-teal-400' },
   bio: { name: 'জীববিজ্ঞান (Biology)', code: 'BIO', color: 'from-green-500 to-lime-400' },
@@ -21,32 +22,37 @@ const CLASSES = [
 ];
 
 const CLASS_SUBJECTS = {
-  cls6: ['sci', 'math', 'ict', 'eng'],
-  cls7: ['sci', 'math', 'ict', 'eng'],
-  cls8: ['sci', 'math', 'ict', 'eng'],
-  cls9: ['phy', 'chem', 'bio', 'math', 'ict', 'eng'],
-  cls10: ['phy', 'chem', 'bio', 'math', 'ict', 'eng'],
+  cls6: ['ban', 'sci', 'math', 'ict', 'eng'],
+  cls7: ['ban', 'sci', 'math', 'ict', 'eng'],
+  cls8: ['ban', 'sci', 'math', 'ict', 'eng'],
+  cls9: ['ban', 'phy', 'chem', 'bio', 'math', 'ict', 'eng'],
+  cls10: ['ban', 'phy', 'chem', 'bio', 'math', 'ict', 'eng'],
 };
 
 const CHAPTERS = {
+  cls6_ban: ['অনুচ্ছেদ ও রচনা', 'ব্যাকরণ: পদ প্রকরণ', 'সাহিত্য: কবিতা পাঠ'],
   cls6_sci: ['আমাদের জীবনে বিজ্ঞান', 'কোষ ও জীবের গঠন', 'শক্তির রূপ পরিবর্তন'],
   cls6_math: ['সংখ্যা ও পরিমাপ', 'পাটিগণিত ও অনুপাত', 'জ্যামিতিক চিত্র'],
   cls6_ict: ['তথ্য ও যোগাযোগ প্রযুক্তি পরিচিতি', 'কম্পিউটারের ব্যবহার', 'ইন্টারনেট ও নিরাপত্তা'],
   cls6_eng: ['Unit 1: Greetings & Introduction', 'Unit 2: My Family', 'Grammar: Present Tense'],
+  cls7_ban: ['গদ্য: শিক্ষামূলক প্রবন্ধ', 'ব্যাকরণ: কারক ও বিভক্তি', 'কবিতা পাঠ'],
   cls7_sci: ['জীবের বৃদ্ধি ও বংশগতি', 'আমাদের শরীরের অন্তর্গঠন', 'সবুজ উদ্ভিদের খাদ্য উৎপাদন'],
   cls7_math: ['পূর্ণসংখ্যা', 'সেট', 'রাশিমালা ও সূচক'],
   cls7_ict: ['কম্পিউটার ও অপারেটিং সিস্টেম', 'ওয়ার্ড প্রসেসিং', 'ডেটা ও তথ্য'],
   cls7_eng: ['Unit 1: Attention Please', 'Unit 2: My Study Guide', 'Grammar: Past Tense'],
+  cls8_ban: ['গদ্য: জাতীয় জীবনে বিজ্ঞান', 'ব্যাকরণ: সমাস', 'সাহিত্যপাঠ: গল্প'],
   cls8_sci: ['জীবনের একক কোষ', 'আলো ও প্রতিসরণ', 'শক্তির উৎস ও ব্যবহার'],
   cls8_math: ['প্যাটার্ন ও সেট', 'বীজগাণিতিক রাশি', 'চতুর্ভুজ'],
   cls8_ict: ['কম্পিউটার নেটওয়ার্ক', 'স্প্রেডশিট ব্যবহার', 'ইমেইল ও ক্লাউড'],
   cls8_eng: ['Unit 1: Father of the Nation', 'Unit 2: Food and Nutrition', 'Grammar: Future Tense'],
+  cls9_ban: ['বাংলা সাহিত্য: কবিতা', 'ব্যাকরণ: প্রত্যয় ও অনুপ্রাণ', 'গদ্য: প্রবন্ধ রচনা'],
   cls9_phy: ['গতি (Motion)', 'গতির পরিবর্তন ও বল', 'কাজ, শক্তি ও ক্ষমতা', 'আলোর প্রতিসরণ'],
   cls9_chem: ['পদার্থের অবস্থা', 'পরমাণুর গঠন', 'পর্যায় সারণি ও রাসায়নিক বন্ধন', 'রাসায়নিক বিক্রিয়া'],
   cls9_bio: ['জীবন পাঠ', 'কোষ ও কোষ বিভাজন', 'টিস্যু ও টিস্যুতন্ত্র', 'খাদ্য, পুষ্টি ও পরিপাক'],
   cls9_math: ['সেট ও ফাংশন', 'বীজগাণিতিক রাশি', 'সূচক ও লগারিদম', 'ত্রিকোণমিতি'],
   cls9_ict: ['তথ্য ও যোগাযোগ প্রযুক্তি: বিশ্ব ও বাংলাদেশ', 'কম্পিউটার ও কম্পিউটার ব্যবহার', 'ইন্টারনেট ও ওয়েবসাইট'],
   cls9_eng: ['Unit 1: Personal Communication', 'Unit 2: Pastimes', 'Grammar: Tense Review'],
+  cls10_ban: ['সাহিত্য: ছোটগল্প', 'ব্যাকরণ: দ্বিরুক্তি ও যুক্তবর্ণ', 'নাটক ও প্রবন্ধ'],
   cls10_phy: ['বৈদ্যুতিক স্রোত', 'আলোর প্রতিফলন ও দর্পণ', 'চৌম্বক প্রভাব ও তড়িৎক্রম', 'আধুনিক পদার্থবিজ্ঞান ও ইলেকট্রনিক্স'],
   cls10_chem: ['রাসায়নিক বিক্রিয়া', 'মোলের ধারণা ও রাসায়নিক গণনা', 'অ্যাসিড-ক্ষারক সমতা', 'খনিজ সম্পদ: জীবাশ্ম'],
   cls10_bio: ['জীবন নিয়ন্ত্রণ', 'বংশগতি', 'জীবের পরিবেশ', 'জীবপ্রযুক্তি'],
@@ -60,13 +66,12 @@ const USERS = [
   { id: 'usr_t1', name: 'রহিম উদ্দিন', email: 'teacher@demo.com', password: 'demo123', role: 'teacher', designation: 'সহকারী শিক্ষক', subject: 'পদার্থবিজ্ঞান' },
   { id: 'usr_t2', name: 'সালমা খাতুন', email: 'salma@demo.com', password: 'demo123', role: 'teacher', designation: 'সহকারী শিক্ষক', subject: 'রসায়ন' },
   { id: 'usr_t3', name: 'আনোয়ার হোসেন', email: 'anwar@demo.com', password: 'demo123', role: 'teacher', designation: 'সহকারী শিক্ষক', subject: 'গণিত' },
-  { id: 'usr_s1', name: 'আরাফাত রহমান', email: 'student@demo.com', password: 'demo123', role: 'student', classId: 'cls9', roll: '01' },
-  { id: 'usr_s2', name: 'নুসরাত জাহান', email: 'nusrat@demo.com', password: 'demo123', role: 'student', classId: 'cls9', roll: '02' },
-  { id: 'usr_s3', name: 'তানভীর হাসান', email: 'tanvir@demo.com', password: 'demo123', role: 'student', classId: 'cls9', roll: '03' },
-  { id: 'usr_s4', name: 'মেহেদী হাসান', email: 'mehedi@demo.com', password: 'demo123', role: 'student', classId: 'cls9', roll: '04' },
-  { id: 'usr_s5', name: 'সাদিয়া ইসলাম', email: 'sadia@demo.com', password: 'demo123', role: 'student', classId: 'cls9', roll: '05' },
-  { id: 'usr_s6', name: 'রাকিবুল ইসলাম', email: 'rakib@demo.com', password: 'demo123', role: 'student', classId: 'cls9', roll: '06' },
-  { id: 'usr_s7', name: 'ফারিয়া আক্তার', email: 'faria@demo.com', password: 'demo123', role: 'student', classId: 'cls9', roll: '07' },
+  { id: 'usr_s1', name: 'Arafat Rahman', email: 'student@demo.com', password: 'demo123', role: 'student', classId: 'cls9', roll: '01' },
+  { id: 'usr_s2', name: 'Kabbo Mahmud', email: 'kabbo@demo.com', password: 'demo123', role: 'student', classId: 'cls9', roll: '02' },
+  { id: 'usr_s3', name: 'Saif Khan', email: 'saif@demo.com', password: 'demo123', role: 'student', classId: 'cls9', roll: '03' },
+  { id: 'usr_s4', name: 'Fauzia Dina', email: 'fauzia@demo.com', password: 'demo123', role: 'student', classId: 'cls9', roll: '04' },
+  { id: 'usr_s5', name: 'Koyel Saha', email: 'koyel@demo.com', password: 'demo123', role: 'student', classId: 'cls9', roll: '05' },
+  { id: 'usr_s6', name: 'Jerin Sultana', email: 'jerin@demo.com', password: 'demo123', role: 'student', classId: 'cls9', roll: '06' },
 ];
 
 const MOTION_MCQS = [
@@ -325,17 +330,17 @@ export function seedIfEmpty() {
     );
     const mk = (userId, type, refId, title, total, obtained, dayAgo) =>
       insResult.run(`res_seed_${userId}_${refId}`, userId, type, refId, title, total, obtained, obtained, total - obtained, Math.round((obtained / total) * 100), '[]', daysAgo(dayAgo));
-    mk('usr_s2', 'weekly', 'week1', 'Weekly Exam — Week 01', 10, 10, 4);
-    mk('usr_s3', 'weekly', 'week1', 'Weekly Exam — Week 01', 10, 9, 4);
-    mk('usr_s4', 'weekly', 'week1', 'Weekly Exam — Week 01', 10, 8, 5);
-    mk('usr_s5', 'weekly', 'week1', 'Weekly Exam — Week 01', 10, 7, 5);
-    mk('usr_s6', 'weekly', 'week1', 'Weekly Exam — Week 01', 10, 6, 6);
-    mk('usr_s7', 'weekly', 'week1', 'Weekly Exam — Week 01', 10, 5, 6);
-    mk('usr_s3', 'weekly', 'week2', 'Weekly Exam — Week 02', 8, 7, 2);
+    mk('usr_s1', 'weekly', 'week1', 'Weekly Exam — Week 01', 10, 10, 4);
+    mk('usr_s2', 'weekly', 'week1', 'Weekly Exam — Week 01', 10, 9, 4);
+    mk('usr_s3', 'weekly', 'week1', 'Weekly Exam — Week 01', 10, 8, 5);
+    mk('usr_s4', 'weekly', 'week1', 'Weekly Exam — Week 01', 10, 7, 5);
+    mk('usr_s5', 'weekly', 'week1', 'Weekly Exam — Week 01', 10, 6, 6);
+    mk('usr_s6', 'weekly', 'week1', 'Weekly Exam — Week 01', 10, 5, 6);
+    mk('usr_s1', 'weekly', 'week2', 'Weekly Exam — Week 02', 8, 7, 2);
     mk('usr_s2', 'weekly', 'week2', 'Weekly Exam — Week 02', 8, 6, 2);
-    mk('usr_s4', 'weekly', 'week2', 'Weekly Exam — Week 02', 8, 6, 2);
-    mk('usr_s5', 'weekly', 'week2', 'Weekly Exam — Week 02', 8, 4, 1);
-    mk('usr_s6', 'weekly', 'week2', 'Weekly Exam — Week 02', 8, 3, 1);
+    mk('usr_s3', 'weekly', 'week2', 'Weekly Exam — Week 02', 8, 6, 2);
+    mk('usr_s4', 'weekly', 'week2', 'Weekly Exam — Week 02', 8, 4, 1);
+    mk('usr_s5', 'weekly', 'week2', 'Weekly Exam — Week 02', 8, 3, 1);
     mk('usr_s1', 'chapter', 'cls9_phy_c1', 'গতি (Motion) — MCQ Test', 20, 14, 3);
     mk('usr_s2', 'chapter', 'cls9_phy_c1', 'গতি (Motion) — MCQ Test', 20, 16, 3);
     mk('usr_s3', 'chapter', 'cls9_phy_c1', 'গতি (Motion) — MCQ Test', 20, 12, 2);

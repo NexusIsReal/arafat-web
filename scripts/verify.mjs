@@ -19,11 +19,12 @@ async function api(path, method = 'GET', body) {
   const st = await api('/api/state');
   const db = st.data;
   ok('GET /api/state 200', st.status === 200);
-  ok('school info', db.school?.nameEn === 'Adarsha High School');
+  ok('school info (St. Joseph)', db.school?.nameEn === 'St. Joseph School & College' && db.school?.facebook === 'https://www.facebook.com/sjscb');
   ok('classes = 5', db.classes.length === 5);
-  ok('subjects = 24', db.subjects.length === 24);
-  ok('chapters = 80', db.chapters.length === 80);
-  ok('users (3 roles)', db.users.some(u => u.role === 'admin') && db.users.some(u => u.role === 'teacher') && db.users.filter(u => u.role === 'student').length === 7);
+  ok('subjects = 29 (Bangla added)', db.subjects.length === 29 && db.subjects.some(s => s.code === 'BAN'));
+  ok('chapters = 95', db.chapters.length === 95);
+  ok('users (3 roles, 6 students)', db.users.some(u => u.role === 'admin') && db.users.some(u => u.role === 'teacher') && db.users.filter(u => u.role === 'student').length === 6);
+  ok('student roster (Arafat..Jerin)', ['Arafat Rahman', 'Kabbo Mahmud', 'Saif Khan', 'Fauzia Dina', 'Koyel Saha', 'Jerin Sultana'].every(n => db.users.some(u => u.name === n)));
 
   const motion = db.chapters.find(c => c.id === 'cls9_phy_c1');
   ok('Motion chapter lectures = 2', motion.lectures.length === 2);

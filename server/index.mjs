@@ -16,12 +16,13 @@ console.log('[db] Using SQLite database:', DB_FILE);
 const uid = (p) => `${p}_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
 
 const SCHOOL = {
-  name: 'আদর্শ উচ্চ বিদ্যালয়',
-  nameEn: 'Adarsha High School',
-  address: 'স্কুল রোড, ধানমন্ডি, ঢাকা-১২০৯',
+  name: 'সেন্ট জোসেফ স্কুল এন্ড কলেজ',
+  nameEn: 'St. Joseph School & College',
+  address: 'বনপাড়া, বড়াইগ্রাম, নাটোর, রাজশাহী, বাংলাদেশ',
   phone: '+880 1XXX-XXXXXX',
-  email: 'info@adarshaschool.edu.bd',
-  eiin: '123456',
+  email: 'stjosephbon123915@gmail.com',
+  eiin: '123915',
+  facebook: 'https://www.facebook.com/sjscb',
 };
 
 // ---------- State snapshot ----------
