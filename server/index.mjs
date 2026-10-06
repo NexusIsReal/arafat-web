@@ -259,6 +259,15 @@ app.post('/api/notices', (req, res) => {
   res.json({ ok: true, state: getState() });
 });
 
+app.put('/api/notices/:id', (req, res) => {
+  const { title, body } = req.body ?? {};
+  const n = db.prepare('SELECT * FROM notices WHERE id = ?').get(req.params.id);
+  if (!n) return res.status(404).json({ error: 'Notice not found' });
+  if (!title?.trim()) return res.status(400).json({ error: 'Title required' });
+  db.prepare('UPDATE notices SET title = ?, body = ? WHERE id = ?').run(title.trim(), body?.trim() || '', req.params.id);
+  res.json({ ok: true, state: getState() });
+});
+
 app.delete('/api/notices/:id', (req, res) => {
   db.prepare('DELETE FROM notices WHERE id = ?').run(req.params.id);
   res.json({ ok: true, state: getState() });

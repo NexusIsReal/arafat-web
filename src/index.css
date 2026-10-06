@@ -30,3 +30,22 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #a5b4fc;
 }
+
+@keyframes elb-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes elb-pop {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes elb-toast {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-fade-in { animation: elb-fade-in 0.15s ease-out; }
+.elb-pop { animation: elb-pop 0.18s ease-out; }
+.elb-toast { animation: elb-toast 0.22s ease-out; }

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { SUBJECT_META } from '../data/meta';
-import { Card, SectionTitle, TabButton, Badge, inputCls, btnPrimary, Stat, fmtDate } from '../components/ui';
+import { Card, SectionTitle, TabButton, Badge, inputCls, btnPrimary, btnGhost, btnDanger, Stat, fmtDate, Modal, ConfirmDialog, useToast } from '../components/ui';
 import type { User } from '../types';
 
 interface EditUser extends User {
@@ -11,6 +11,7 @@ interface EditUser extends User {
 
 export default function AdminPanel() {
   const { db, mutate, user } = useApp();
+  const toast = useToast();
   const [tab, setTab] = useState<'overview' | 'students' | 'teachers' | 'classes' | 'content' | 'results' | 'notices'>('overview');
 
   // student form
@@ -30,8 +31,12 @@ export default function AdminPanel() {
   // notice form
   const [nTitle, setNTitle] = useState('');
   const [nBody, setNBody] = useState('');
-  // edit user
+  // edit user (modal)
   const [editUser, setEditUser] = useState<EditUser | null>(null);
+  // edit notice (modal)
+  const [editNotice, setEditNotice] = useState<{ id: string; title: string; body: string } | null>(null);
+  // confirm dialog
+  const [confirmState, setConfirmState] = useState<{ title: string; message: string; action: () => void } | null>(null);
   // chapter management
   const [chSubject, setChSubject] = useState('cls9_ban');
   const [chName, setChName] = useState('');
@@ -55,10 +60,13 @@ export default function AdminPanel() {
         subject: editUser.subject ?? null,
       });
       setEditUser(null);
+      toast('success', 'User সফলভাবে আপডেট হয়েছে ✓');
     } catch (e) {
-      alert((e as Error).message);
+      toast('error', (e as Error).message);
     }
   };
+
+  const askDelete = (title: string, message: string, action: () => void) => setConfirmState({ title, message, action });
 
   const chaptersOf = (subjectId: string) =>
     db.chapters.filter((c) => c.subjectId === subjectId).sort((a, b) => a.order - b.order);
@@ -84,9 +92,9 @@ export default function AdminPanel() {
       </div>
 
       {/* Edit user modal */}
-      {editUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4">
-          <Card className="w-full max-w-md space-y-3 p-6">
+      <Modal open={!!editUser} onClose={() => setEditUser(null)}>
+        {editUser && (
+          <Card className="space-y-3 p-6">
             <p className="text-lg font-bold text-slate-900">
               Edit {editUser.role === 'student' ? 'Student' : 'Teacher'} — {editUser.name}
             </p>
@@ -104,12 +112,49 @@ export default function AdminPanel() {
             )}
             <input className={inputCls()} type="text" placeholder="নতুন Password (খালি রাখলে অপরিবর্তিত থাকবে)" value={editUser.newPassword} onChange={(e) => setEditUser({ ...editUser, newPassword: e.target.value })} />
             <div className="flex justify-end gap-3 pt-2">
-              <button onClick={() => setEditUser(null)} className="rounded-lg bg-slate-100 px-5 py-2.5 text-sm font-semibold text-slate-700">Cancel</button>
+              <button onClick={() => setEditUser(null)} {...btnGhost()}>Cancel</button>
               <button onClick={saveEdit} {...btnPrimary()}>Save Changes</button>
             </div>
           </Card>
-        </div>
-      )}
+        )}
+      </Modal>
+
+      {/* Edit notice modal */}
+      <Modal open={!!editNotice} onClose={() => setEditNotice(null)}>
+        {editNotice && (
+          <Card className="space-y-3 p-6">
+            <p className="text-lg font-bold text-slate-900">Edit Notice</p>
+            <input className={inputCls()} placeholder="Notice Title" value={editNotice.title} onChange={(e) => setEditNotice({ ...editNotice, title: e.target.value })} />
+            <textarea className={inputCls()} rows={5} placeholder="বিস্তারিত…" value={editNotice.body} onChange={(e) => setEditNotice({ ...editNotice, body: e.target.value })} />
+            <div className="flex justify-end gap-3 pt-2">
+              <button onClick={() => setEditNotice(null)} {...btnGhost()}>Cancel</button>
+              <button
+                onClick={async () => {
+                  try {
+                    await mutate(`/notices/${editNotice.id}`, 'PUT', { title: editNotice.title, body: editNotice.body });
+                    setEditNotice(null);
+                    toast('success', 'Notice সফলভাবে আপডেট হয়েছে ✓');
+                  } catch (e) {
+                    toast('error', (e as Error).message);
+                  }
+                }}
+                {...btnPrimary()}
+              >
+                Save Changes
+              </button>
+            </div>
+          </Card>
+        )}
+      </Modal>
+
+      {/* Confirm dialog */}
+      <ConfirmDialog
+        open={!!confirmState}
+        onClose={() => setConfirmState(null)}
+        onConfirm={() => confirmState?.action()}
+        title={confirmState?.title ?? ''}
+        message={confirmState?.message ?? ''}
+      />
 
       {tab === 'overview' && (
         <>
@@ -156,8 +201,9 @@ export default function AdminPanel() {
                 try {
                   await mutate('/users', 'POST', { name: sName.trim(), email: sEmail.trim(), password: 'demo123', role: 'student', classId: sClass, roll: sRoll.trim() || undefined });
                   setSName(''); setSEmail(''); setSRoll('');
+                  toast('success', `${sName.trim()} যোগ হয়েছে ✓ (Password: demo123)`);
                 } catch (e) {
-                  alert((e as Error).message);
+                  toast('error', (e as Error).message);
                 }
               }}
             >
@@ -188,13 +234,13 @@ export default function AdminPanel() {
                       <div className="flex justify-end gap-2">
                         <button
                           onClick={() => openEdit(s)}
-                          className="rounded-lg bg-indigo-50 px-3 py-1.5 text-xs font-bold text-indigo-600 hover:bg-indigo-100"
+                          className="rounded-lg bg-indigo-50 px-3 py-1.5 text-xs font-bold text-indigo-600 transition hover:bg-indigo-100 active:scale-95"
                         >
                           Edit
                         </button>
                         <button
-                          onClick={() => mutate(`/users/${s.id}`, 'DELETE').catch((e) => alert(e.message))}
-                          className="rounded-lg bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-100"
+                          onClick={() => askDelete('Student মুছবেন?', `"${s.name}" এর সব ফলাফলসহ একাউন্ট মুছে যাবে। এটি ফেরানো যাবে না।`, () => mutate(`/users/${s.id}`, 'DELETE').catch((e) => toast('error', e.message)))}
+                          className="rounded-lg bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-600 transition hover:bg-rose-100 active:scale-95"
                         >
                           Delete
                         </button>
@@ -225,8 +271,9 @@ export default function AdminPanel() {
                 try {
                   await mutate('/users', 'POST', { name: tName.trim(), email: tEmail.trim(), password: 'demo123', role: 'teacher', designation: 'সহকারী শিক্ষক', subject: tSubject || undefined });
                   setTName(''); setTEmail(''); setTSubject('');
+                  toast('success', `${tName.trim()} যোগ হয়েছে ✓ (Password: demo123)`);
                 } catch (e) {
-                  alert((e as Error).message);
+                  toast('error', (e as Error).message);
                 }
               }}
             >
@@ -255,13 +302,13 @@ export default function AdminPanel() {
                       <div className="flex justify-end gap-2">
                         <button
                           onClick={() => openEdit(t)}
-                          className="rounded-lg bg-indigo-50 px-3 py-1.5 text-xs font-bold text-indigo-600 hover:bg-indigo-100"
+                          className="rounded-lg bg-indigo-50 px-3 py-1.5 text-xs font-bold text-indigo-600 transition hover:bg-indigo-100 active:scale-95"
                         >
                           Edit
                         </button>
                         <button
-                          onClick={() => mutate(`/users/${t.id}`, 'DELETE').catch((e) => alert(e.message))}
-                          className="rounded-lg bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-100"
+                          onClick={() => askDelete('Teacher মুছবেন?', `"${t.name}" এর একাউন্ট মুছে যাবে। এটি ফেরানো যাবে না।`, () => mutate(`/users/${t.id}`, 'DELETE').catch((e) => toast('error', e.message)))}
+                          className="rounded-lg bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-600 transition hover:bg-rose-100 active:scale-95"
                         >
                           Delete
                         </button>
@@ -289,8 +336,9 @@ export default function AdminPanel() {
                   try {
                     await mutate('/classes', 'POST', { name: cName.trim(), nameBn: cNameBn.trim() || undefined });
                     setCName(''); setCNameBn('');
+                    toast('success', 'Class যোগ হয়েছে ✓');
                   } catch (e) {
-                    alert((e as Error).message);
+                    toast('error', (e as Error).message);
                   }
                 }}
               >
@@ -312,8 +360,9 @@ export default function AdminPanel() {
                   const meta = SUBJECT_META[subCode];
                   try {
                     await mutate('/subjects', 'POST', { classId: subClass, name: meta.name, code: meta.code, color: meta.color });
+                    toast('success', `${meta.name} যোগ হয়েছে ✓`);
                   } catch (e) {
-                    alert((e as Error).message);
+                    toast('error', (e as Error).message);
                   }
                 }}
               >
@@ -340,8 +389,9 @@ export default function AdminPanel() {
                   try {
                     await mutate(`/subjects/${chSubject}/chapters`, 'POST', { name: chName.trim() });
                     setChName('');
+                    toast('success', 'Chapter যোগ হয়েছে ✓');
                   } catch (e) {
-                    alert((e as Error).message);
+                    toast('error', (e as Error).message);
                   }
                 }}
               >
@@ -359,8 +409,8 @@ export default function AdminPanel() {
                   <div className="flex items-center justify-between">
                     <p className="font-bold text-slate-800">{c.name} <span className="text-sm font-normal text-slate-500">— {c.nameBn}</span></p>
                     <button
-                      onClick={() => mutate(`/classes/${c.id}`, 'DELETE').catch((e) => alert(e.message))}
-                      className="rounded-lg bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-100"
+                      onClick={() => askDelete('Class মুছবেন?', `"${c.name}" এবং এর সব Subject, Chapter ও Content মুছে যাবে।`, () => mutate(`/classes/${c.id}`, 'DELETE').catch((e) => toast('error', e.message)))}
+                      className="rounded-lg bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-600 transition hover:bg-rose-100 active:scale-95"
                     >
                       Delete
                     </button>
@@ -369,7 +419,12 @@ export default function AdminPanel() {
                     {db.subjects.filter((s) => s.classId === c.id).map((s) => (
                       <span key={s.id} className={`rounded-lg bg-gradient-to-r ${s.color} px-3 py-1 text-xs font-semibold text-white`}>
                         {s.name}
-                        <button className="ml-2 font-bold opacity-80" onClick={() => mutate(`/subjects/${s.id}`, 'DELETE').catch((e) => alert(e.message))}>×</button>
+                        <button
+                          className="ml-2 font-bold opacity-80 hover:opacity-100"
+                          onClick={() => askDelete('Subject মুছবেন?', `"${s.name}" এবং এর সব Chapter ও Content মুছে যাবে।`, () => mutate(`/subjects/${s.id}`, 'DELETE').catch((e) => toast('error', e.message)))}
+                        >
+                          ×
+                        </button>
                       </span>
                     ))}
                     {db.subjects.filter((s) => s.classId === c.id).length === 0 && <span className="text-xs text-slate-400">কোনো subject নেই</span>}
@@ -386,7 +441,7 @@ export default function AdminPanel() {
                               {ch.order}. {ch.name}
                               <button
                                 title="Delete chapter"
-                                onClick={() => { if (confirm(`"${ch.name}" অধ্যায় ও এর সব কনটেন্ট মুছে যাবে। নিশ্চিত?`)) mutate(`/chapters/${ch.id}`, 'DELETE').catch((e) => alert(e.message)); }}
+                                onClick={() => askDelete('Chapter মুছবেন?', `"${ch.name}" অধ্যায় ও এর সব Lecture, Notes, Practice, MCQ মুছে যাবে।`, () => mutate(`/chapters/${ch.id}`, 'DELETE').catch((e) => toast('error', e.message)))}
                                 className="font-bold text-rose-500 hover:text-rose-700"
                               >
                                 ×
@@ -432,7 +487,7 @@ export default function AdminPanel() {
                   {ctChapterObj.lectures.map((l) => (
                     <div key={l.id} className="flex items-center justify-between gap-2 rounded-lg bg-white p-2.5 text-xs ring-1 ring-slate-200">
                       <span className="font-medium text-slate-700">{l.title}</span>
-                      <button onClick={() => mutate(`/lectures/${l.id}`, 'DELETE').catch((e) => alert(e.message))} className="shrink-0 font-bold text-rose-500">×</button>
+                      <button onClick={() => askDelete('Lecture মুছবেন?', `"${l.title}" মুছে যাবে।`, () => mutate(`/lectures/${l.id}`, 'DELETE').catch((e) => toast('error', e.message)))} className="shrink-0 font-bold text-rose-500 hover:text-rose-700">×</button>
                     </div>
                   ))}
                   {!ctChapterObj.lectures.length && <p className="text-xs text-slate-400">কোনো lecture নেই</p>}
@@ -444,7 +499,7 @@ export default function AdminPanel() {
                   {ctChapterObj.notes.map((n) => (
                     <div key={n.id} className="flex items-center justify-between gap-2 rounded-lg bg-white p-2.5 text-xs ring-1 ring-slate-200">
                       <span className="font-medium text-slate-700">{n.title}</span>
-                      <button onClick={() => mutate(`/notes/${n.id}`, 'DELETE').catch((e) => alert(e.message))} className="shrink-0 font-bold text-rose-500">×</button>
+                      <button onClick={() => askDelete('Notes মুছবেন?', `"${n.title}" মুছে যাবে।`, () => mutate(`/notes/${n.id}`, 'DELETE').catch((e) => toast('error', e.message)))} className="shrink-0 font-bold text-rose-500 hover:text-rose-700">×</button>
                     </div>
                   ))}
                   {!ctChapterObj.notes.length && <p className="text-xs text-slate-400">কোনো note নেই</p>}
@@ -456,7 +511,7 @@ export default function AdminPanel() {
                   {ctChapterObj.practice.map((p) => (
                     <div key={p.id} className="flex items-start justify-between gap-2 rounded-lg bg-white p-2.5 text-xs ring-1 ring-slate-200">
                       <span className="font-medium text-slate-700">{p.question.slice(0, 60)}{p.question.length > 60 ? '…' : ''}</span>
-                      <button onClick={() => mutate(`/practice/${p.id}`, 'DELETE').catch((e) => alert(e.message))} className="shrink-0 font-bold text-rose-500">×</button>
+                      <button onClick={() => askDelete('Practice মুছবেন?', 'এই প্রশ্নটি মুছে যাবে।', () => mutate(`/practice/${p.id}`, 'DELETE').catch((e) => toast('error', e.message)))} className="shrink-0 font-bold text-rose-500 hover:text-rose-700">×</button>
                     </div>
                   ))}
                   {!ctChapterObj.practice.length && <p className="text-xs text-slate-400">কোনো practice নেই</p>}
@@ -505,8 +560,8 @@ export default function AdminPanel() {
                     </td>
                     <td className="px-5 py-3 text-right">
                       <button
-                        onClick={() => { if (confirm('এই Result মুছে ফেলবেন?')) mutate(`/results/${r.id}`, 'DELETE').catch((e) => alert(e.message)); }}
-                        className="rounded-lg bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-100"
+                        onClick={() => askDelete('Result মুছবেন?', `${stu?.name ?? 'Student'}-এর "${r.title}" ফলাফল মুছে যাবে।`, () => mutate(`/results/${r.id}`, 'DELETE').catch((e) => toast('error', e.message)))}
+                        className="rounded-lg bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-600 transition hover:bg-rose-100 active:scale-95"
                       >
                         Delete
                       </button>
@@ -533,8 +588,9 @@ export default function AdminPanel() {
                 try {
                   await mutate('/notices', 'POST', { title: nTitle.trim(), body: nBody.trim() });
                   setNTitle(''); setNBody('');
+                  toast('success', 'Notice প্রকাশিত হয়েছে ✓');
                 } catch (e) {
-                  alert((e as Error).message);
+                  toast('error', (e as Error).message);
                 }
               }}
             >
@@ -551,12 +607,20 @@ export default function AdminPanel() {
                     <p className="mt-1 text-sm text-slate-600">{n.body}</p>
                     <p className="mt-2 text-xs text-slate-400">{new Date(n.date).toLocaleDateString('bn-BD')}</p>
                   </div>
-                  <button
-                    onClick={() => mutate(`/notices/${n.id}`, 'DELETE').catch((e) => alert(e.message))}
-                    className="shrink-0 rounded-lg bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-100"
-                  >
-                    Delete
-                  </button>
+                  <div className="flex shrink-0 gap-2">
+                    <button
+                      onClick={() => setEditNotice({ id: n.id, title: n.title, body: n.body })}
+                      className="rounded-lg bg-indigo-50 px-3 py-1.5 text-xs font-bold text-indigo-600 transition hover:bg-indigo-100 active:scale-95"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => askDelete('Notice মুছবেন?', `"${n.title}" স্কুলের Homepage থেকেও সরে যাবে।`, () => mutate(`/notices/${n.id}`, 'DELETE').catch((e) => toast('error', e.message)))}
+                      className="rounded-lg bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-600 transition hover:bg-rose-100 active:scale-95"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
               </Card>
             ))}

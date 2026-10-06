@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { Card, SectionTitle, TabButton, Badge, inputCls, btnPrimary, EmptyState, fmtDate } from '../components/ui';
+import { Card, SectionTitle, TabButton, Badge, inputCls, btnPrimary, EmptyState, fmtDate, ConfirmDialog, useToast } from '../components/ui';
 import type { MCQ } from '../types';
 
 const OPTIONS = ['ক', 'খ', 'গ', 'ঘ'];
@@ -78,7 +78,11 @@ function McqForm({ addQuestion }: { addQuestion: (q: Omit<MCQ, 'id'>) => void | 
 
 export default function TeacherPanel() {
   const { db, mutate, user } = useApp();
+  const toast = useToast();
   const [tab, setTab] = useState<'content' | 'mcq' | 'weekly' | 'results'>('content');
+  const [confirmState, setConfirmState] = useState<{ title: string; message: string; action: () => void } | null>(null);
+
+  const askDelete = (title: string, message: string, action: () => void) => setConfirmState({ title, message, action });
 
   // content form
   const [pick, setPick] = useState({ classId: '', subjectId: '', chapterId: '' });
@@ -87,7 +91,6 @@ export default function TeacherPanel() {
   const [videoUrl, setVideoUrl] = useState('');
   const [content, setContent] = useState('');
   const [answer, setAnswer] = useState('');
-  const [saved, setSaved] = useState('');
 
   // mcq tab
   const [mcqPick, setMcqPick] = useState({ classId: '', subjectId: '', chapterId: '' });
@@ -103,27 +106,25 @@ export default function TeacherPanel() {
   const mcqChapter = db.chapters.find((c) => c.id === mcqPick.chapterId);
   const selectedExam = db.weeklyExams.find((e) => e.id === wExamId);
 
-  const flash = (m: string) => { setSaved(m); setTimeout(() => setSaved(''), 2500); };
-
   const saveContent = async () => {
     if (!chapter) return;
     try {
       if (ctype === 'lecture') {
         if (!title.trim() || !videoUrl.trim()) return;
         await mutate(`/chapters/${chapter.id}/lectures`, 'POST', { title: title.trim(), videoUrl: videoUrl.trim() });
-        flash('Lecture যোগ হয়েছে ✓');
+        toast('success', 'Lecture যোগ হয়েছে ✓');
       } else if (ctype === 'notes') {
         if (!title.trim() || !content.trim()) return;
         await mutate(`/chapters/${chapter.id}/notes`, 'POST', { title: title.trim(), content: content.trim() });
-        flash('Notes যোগ হয়েছে ✓');
+        toast('success', 'Notes যোগ হয়েছে ✓');
       } else {
         if (!content.trim() || !answer.trim()) return;
         await mutate(`/chapters/${chapter.id}/practice`, 'POST', { question: content.trim(), answer: answer.trim() });
-        flash('Practice Question যোগ হয়েছে ✓');
+        toast('success', 'Practice Question যোগ হয়েছে ✓');
       }
       setTitle(''); setVideoUrl(''); setContent(''); setAnswer('');
     } catch (e) {
-      flash((e as Error).message);
+      toast('error', (e as Error).message);
     }
   };
 
@@ -144,7 +145,13 @@ export default function TeacherPanel() {
         <TabButton active={tab === 'results'} onClick={() => setTab('results')}>Student Results</TabButton>
       </div>
 
-      {saved && <div className="mb-4 rounded-lg bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700 ring-1 ring-emerald-200">{saved}</div>}
+      <ConfirmDialog
+        open={!!confirmState}
+        onClose={() => setConfirmState(null)}
+        onConfirm={() => confirmState?.action()}
+        title={confirmState?.title ?? ''}
+        message={confirmState?.message ?? ''}
+      />
 
       {tab === 'content' && (
         <Card className="space-y-5 p-6">
@@ -186,7 +193,7 @@ export default function TeacherPanel() {
                     {chapter.lectures.map((l) => (
                       <div key={l.id} className="flex items-center justify-between gap-2 rounded-lg bg-slate-50 p-2 text-xs ring-1 ring-slate-100">
                         <span className="font-medium text-slate-700">{l.title}</span>
-                        <button onClick={() => mutate(`/lectures/${l.id}`, 'DELETE').catch(() => {})} className="shrink-0 font-bold text-rose-500">×</button>
+                        <button onClick={() => askDelete('Lecture মুছবেন?', `"${l.title}" মুছে যাবে।`, () => mutate(`/lectures/${l.id}`, 'DELETE').catch((e) => toast('error', e.message)))} className="shrink-0 font-bold text-rose-500 hover:text-rose-700">×</button>
                       </div>
                     ))}
                   </div>
@@ -199,7 +206,7 @@ export default function TeacherPanel() {
                     {chapter.notes.map((n) => (
                       <div key={n.id} className="flex items-center justify-between gap-2 rounded-lg bg-slate-50 p-2 text-xs ring-1 ring-slate-100">
                         <span className="font-medium text-slate-700">{n.title}</span>
-                        <button onClick={() => mutate(`/notes/${n.id}`, 'DELETE').catch(() => {})} className="shrink-0 font-bold text-rose-500">×</button>
+                        <button onClick={() => askDelete('Notes মুছবেন?', `"${n.title}" মুছে যাবে।`, () => mutate(`/notes/${n.id}`, 'DELETE').catch((e) => toast('error', e.message)))} className="shrink-0 font-bold text-rose-500 hover:text-rose-700">×</button>
                       </div>
                     ))}
                   </div>
@@ -212,7 +219,7 @@ export default function TeacherPanel() {
                     {chapter.practice.map((p) => (
                       <div key={p.id} className="flex items-start justify-between gap-2 rounded-lg bg-slate-50 p-2 text-xs ring-1 ring-slate-100">
                         <span className="font-medium text-slate-700">{p.question.slice(0, 70)}{p.question.length > 70 ? '…' : ''}</span>
-                        <button onClick={() => mutate(`/practice/${p.id}`, 'DELETE').catch(() => {})} className="shrink-0 font-bold text-rose-500">×</button>
+                        <button onClick={() => askDelete('Practice মুছবেন?', 'এই প্রশ্নটি মুছে যাবে।', () => mutate(`/practice/${p.id}`, 'DELETE').catch((e) => toast('error', e.message)))} className="shrink-0 font-bold text-rose-500 hover:text-rose-700">×</button>
                       </div>
                     ))}
                   </div>
@@ -269,8 +276,8 @@ export default function TeacherPanel() {
                       <p className="mt-1 text-xs text-emerald-700">সঠিক: {OPTIONS[m.correctIndex]}) {m.options[m.correctIndex]}</p>
                     </div>
                     <button
-                      onClick={() => mutate(`/mcq/${m.id}`, 'DELETE').catch(() => {})}
-                      className="shrink-0 rounded-lg bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-100"
+                      onClick={() => askDelete('MCQ মুছবেন?', `"${m.question.slice(0, 50)}${m.question.length > 50 ? '…' : ''}" প্রশ্নটি মুছে যাবে।`, () => mutate(`/mcq/${m.id}`, 'DELETE').catch((e) => toast('error', e.message)))}
+                      className="shrink-0 rounded-lg bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-600 transition hover:bg-rose-100 active:scale-95"
                     >
                       Delete
                     </button>
@@ -300,9 +307,9 @@ export default function TeacherPanel() {
                   const data = await mutate('/weekly-exams', 'POST', { title: wTitle.trim(), durationMin: wDuration });
                   setWExamId(data.examId);
                   setWTitle('');
-                  flash('Weekly Exam তৈরি হয়েছে ✓ এখন প্রশ্ন যোগ করুন।');
+                  toast('success', 'Weekly Exam তৈরি হয়েছে ✓ এখন প্রশ্ন যোগ করুন।');
                 } catch (e) {
-                  flash((e as Error).message);
+                  toast('error', (e as Error).message);
                 }
               }}
             >
@@ -340,8 +347,8 @@ export default function TeacherPanel() {
                     <div className="flex gap-2">
                       <Link to={`/leaderboard/${e.id}`} className="rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-amber-600">Leaderboard</Link>
                       <button
-                        onClick={() => mutate(`/weekly-exams/${e.id}`, 'DELETE').catch(() => {})}
-                        className="rounded-lg bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-100"
+                        onClick={() => askDelete('Weekly Exam মুছবেন?', `"${e.title}" এবং এর সব প্রশ্ন ও ফলাফল মুছে যাবে।`, () => mutate(`/weekly-exams/${e.id}`, 'DELETE').catch((err) => toast('error', err.message)))}
+                        className="rounded-lg bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-600 transition hover:bg-rose-100 active:scale-95"
                       >
                         Delete
                       </button>

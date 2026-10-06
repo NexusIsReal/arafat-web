@@ -1,3 +1,4 @@
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 
 export function Card({ className = '', children }: { className?: string; children: ReactNode }) {
@@ -91,7 +92,15 @@ export function inputCls() {
 }
 
 export function btnPrimary() {
-  return { className: 'inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow transition hover:bg-indigo-700 disabled:opacity-50' };
+  return { className: 'inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow transition hover:bg-indigo-700 active:scale-95 disabled:opacity-50' };
+}
+
+export function btnDanger() {
+  return { className: 'inline-flex items-center justify-center gap-2 rounded-lg bg-rose-600 px-5 py-2.5 text-sm font-semibold text-white shadow transition hover:bg-rose-700 active:scale-95 disabled:opacity-50' };
+}
+
+export function btnGhost() {
+  return { className: 'inline-flex items-center justify-center gap-2 rounded-lg bg-slate-100 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-200 active:scale-95' };
 }
 
 export function ScoreRing({ percentage, size = 140 }: { percentage: number; size?: number }) {
@@ -121,4 +130,101 @@ export function fmtTime(sec: number) {
   const m = Math.floor(sec / 60).toString().padStart(2, '0');
   const s = (sec % 60).toString().padStart(2, '0');
   return `${m}:${s}`;
+}
+
+// ---------- Modal ----------
+
+export function Modal({ open, onClose, children, wide = false }: { open: boolean; onClose: () => void; children: ReactNode; wide?: boolean }) {
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onClose]);
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-fade-in" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className={`elb-pop w-full ${wide ? 'max-w-2xl' : 'max-w-md'}`}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ---------- ConfirmDialog ----------
+
+export function ConfirmDialog({ open, onClose, onConfirm, title, message, confirmText = 'মুছুন', tone = 'danger' }: {
+  open: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  title: string;
+  message: string;
+  confirmText?: string;
+  tone?: 'danger' | 'primary';
+}) {
+  return (
+    <Modal open={open} onClose={onClose}>
+      <Card className="p-6">
+        <div className="flex items-start gap-3">
+          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${tone === 'danger' ? 'bg-rose-50 text-rose-600' : 'bg-indigo-50 text-indigo-600'}`}>
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-base font-bold text-slate-900">{title}</p>
+            <p className="mt-1 text-sm text-slate-600">{message}</p>
+          </div>
+        </div>
+        <div className="mt-5 flex justify-end gap-3">
+          <button onClick={onClose} {...btnGhost()}>Cancel</button>
+          <button
+            onClick={() => { onConfirm(); onClose(); }}
+            {...(tone === 'danger' ? btnDanger() : btnPrimary())}
+          >
+            {confirmText}
+          </button>
+        </div>
+      </Card>
+    </Modal>
+  );
+}
+
+// ---------- Toast ----------
+
+type ToastKind = 'success' | 'error' | 'info';
+type ToastItem = { id: number; kind: ToastKind; msg: string };
+
+const ToastCtx = createContext<(kind: ToastKind, msg: string) => void>(() => {});
+export function useToast() { return useContext(ToastCtx); }
+
+const toastStyles: Record<ToastKind, { ring: string; icon: string; label: string }> = {
+  success: { ring: 'ring-emerald-200', icon: 'bg-emerald-100 text-emerald-600', label: '✓' },
+  error: { ring: 'ring-rose-200', icon: 'bg-rose-100 text-rose-600', label: '✕' },
+  info: { ring: 'ring-indigo-200', icon: 'bg-indigo-100 text-indigo-600', label: 'i' },
+};
+
+export function ToastProvider({ children }: { children: ReactNode }) {
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const push = useCallback((kind: ToastKind, msg: string) => {
+    const id = Date.now() + Math.random();
+    setToasts((t) => [...t.slice(-3), { id, kind, msg }]);
+    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 3500);
+  }, []);
+  return (
+    <ToastCtx.Provider value={push}>
+      {children}
+      <div className="pointer-events-none fixed right-4 top-4 z-[100] flex w-80 flex-col gap-2">
+        {toasts.map((t) => {
+          const st = toastStyles[t.kind];
+          return (
+            <div key={t.id} className={`elb-toast pointer-events-auto flex items-start gap-3 rounded-xl bg-white p-3.5 shadow-lg ring-1 ${st.ring}`}>
+              <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${st.icon}`}>{st.label}</span>
+              <p className="text-sm font-medium text-slate-700">{t.msg}</p>
+            </div>
+          );
+        })}
+      </div>
+    </ToastCtx.Provider>
+  );
 }

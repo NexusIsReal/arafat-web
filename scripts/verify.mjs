@@ -104,8 +104,10 @@ async function api(path, method = 'GET', body) {
   const AN = await api('/api/notices', 'POST', { title: 'API Notice', body: 'test body' });
   ok('publish notice', AN.status === 200 && AN.data.state.notices.some(n => n.title === 'API Notice'));
   const nid = AN.data.state.notices.find(n => n.title === 'API Notice').id;
+  const UN = await api(`/api/notices/${nid}`, 'PUT', { title: 'API Notice (edited)', body: 'edited body' });
+  ok('edit notice', UN.status === 200 && UN.data.state.notices.some(n => n.title === 'API Notice (edited)'));
   const DN = await api(`/api/notices/${nid}`, 'DELETE');
-  ok('delete notice', DN.status === 200 && !DN.data.state.notices.some(n => n.title === 'API Notice'));
+  ok('delete notice', DN.status === 200 && !DN.data.state.notices.some(n => n.title === 'API Notice (edited)'));
 
   console.log('== 8. A-to-Z: user edit / results / chapters / content delete ==');
   const EU = await api('/api/users', 'POST', { name: 'Edit Me', email: `editme${Date.now()}@demo.com`, password: 'demo123', role: 'student', classId: 'cls9' });
