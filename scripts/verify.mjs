@@ -1,0 +1,109 @@
+/* Full-flow API verification against the running server */
+const BASE = 'http://localhost:3001';
+let pass = 0, fail = 0;
+const ok = (name, cond) => { if (cond) { pass++; console.log(`  PASS ${name}`); } else { fail++; console.log(`  FAIL ${name}`); } };
+
+async function api(path, method = 'GET', body) {
+  const res = await fetch(BASE + path, {
+    method,
+    headers: body ? { 'Content-Type': 'application/json' } : undefined,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  let data = null;
+  try { data = await res.json(); } catch {}
+  return { status: res.status, data };
+}
+
+(async () => {
+  console.log('== 1. State & seed ==');
+  const st = await api('/api/state');
+  const db = st.data;
+  ok('GET /api/state 200', st.status === 200);
+  ok('school info', db.school?.nameEn === 'Adarsha High School');
+  ok('classes = 5', db.classes.length === 5);
+  ok('subjects = 24', db.subjects.length === 24);
+  ok('chapters = 80', db.chapters.length === 80);
+  ok('users (3 roles)', db.users.some(u => u.role === 'admin') && db.users.some(u => u.role === 'teacher') && db.users.filter(u => u.role === 'student').length === 7);
+
+  const motion = db.chapters.find(c => c.id === 'cls9_phy_c1');
+  ok('Motion chapter lectures = 2', motion.lectures.length === 2);
+  ok('Motion video URL (mock YouTube)', motion.lectures[0].videoUrl.startsWith('https://www.youtube.com/embed/'));
+  ok('Motion notes = 2', motion.notes.length === 2);
+  ok('Motion practice = 10', motion.practice.length === 10);
+  ok('Motion MCQs = 20', motion.mcq.questions.length === 20);
+  ok('MCQ options + explanation', motion.mcq.questions[0].options.length === 4 && !!motion.mcq.questions[0].explanation);
+  ok('weekly exams = 3', db.weeklyExams.length === 3);
+  ok('seed results present', db.results.length >= 15);
+  ok('notices = 3', db.notices.length === 3);
+
+  console.log('== 2. Login (all roles) ==');
+  const s = await api('/api/login', 'POST', { email: 'student@demo.com', password: 'demo123' });
+  ok('student login', s.status === 200 && s.data.role === 'student');
+  const t = await api('/api/login', 'POST', { email: 'teacher@demo.com', password: 'demo123' });
+  ok('teacher login', t.status === 200 && t.data.role === 'teacher');
+  const a = await api('/api/login', 'POST', { email: 'admin@demo.com', password: 'demo123' });
+  ok('admin login', a.status === 200 && a.data.role === 'admin');
+  const bad = await api('/api/login', 'POST', { email: 'student@demo.com', password: 'wrong' });
+  ok('wrong password rejected', bad.status === 401);
+
+  console.log('== 3. Student: MCQ submit -> result persisted in .db ==');
+  const before = (await api('/api/state')).data.results.length;
+  const answers = motion.mcq.questions.map(q => ({
+    question: q.question, options: q.options, correctIndex: q.correctIndex,
+    selected: q.correctIndex, explanation: q.explanation,
+  }));
+  const sub = await api('/api/results', 'POST', {
+    userId: 'usr_s1', type: 'chapter', refId: 'cls9_phy_c1',
+    title: motion.mcq.title, total: 20, obtained: 20, answers,
+  });
+  ok('POST /api/results ok', sub.status === 200 && !!sub.data.resultId);
+  ok('result in state', sub.data.state.results.length === before + 1);
+  const myRes = sub.data.state.results.find(r => r.id === sub.data.resultId);
+  ok('result fields (20/20, 100%)', myRes.obtained === 20 && myRes.percentage === 100 && myRes.answers.length === 20);
+
+  console.log('== 4. Teacher: add lecture / notes / practice / MCQ ==');
+  const L = await api('/api/chapters/cls9_phy_c1/lectures', 'POST', { title: 'API Test Lecture', videoUrl: 'https://www.youtube.com/embed/abc123' });
+  ok('add lecture', L.status === 200 && L.data.state.chapters.find(c => c.id === 'cls9_phy_c1').lectures.some(l => l.title === 'API Test Lecture'));
+  const N = await api('/api/chapters/cls9_phy_c1/notes', 'POST', { title: 'API Test Note', content: 'test content' });
+  ok('add note', N.status === 200 && N.data.state.chapters.find(c => c.id === 'cls9_phy_c1').notes.some(n => n.title === 'API Test Note'));
+  const P = await api('/api/chapters/cls9_phy_c1/practice', 'POST', { question: 'API Test Q?', answer: 'API Test A' });
+  ok('add practice', P.status === 200 && P.data.state.chapters.find(c => c.id === 'cls9_phy_c1').practice.some(p => p.question === 'API Test Q?'));
+  const M = await api('/api/chapters/cls9_phy_c1/mcq', 'POST', { question: 'API Test MCQ?', options: ['a', 'b', 'c', 'd'], correctIndex: 2, explanation: 'because' });
+  const addedMcq = M.data.state.chapters.find(c => c.id === 'cls9_phy_c1').mcq.questions.find(q => q.question === 'API Test MCQ?');
+  ok('add MCQ (21 now)', M.status === 200 && M.data.state.chapters.find(c => c.id === 'cls9_phy_c1').mcq.questions.length === 21);
+  const D = await api(`/api/mcq/${addedMcq.id}`, 'DELETE');
+  ok('delete MCQ (back to 20)', D.status === 200 && D.data.state.chapters.find(c => c.id === 'cls9_phy_c1').mcq.questions.length === 20);
+
+  console.log('== 5. Teacher: weekly exam lifecycle ==');
+  const WE = await api('/api/weekly-exams', 'POST', { title: 'API Test Exam', durationMin: 5 });
+  ok('create weekly exam', WE.status === 200 && !!WE.data.examId);
+  const WQ = await api(`/api/weekly-exams/${WE.data.examId}/questions`, 'POST', { question: 'WQ?', options: ['1', '2', '3', '4'], correctIndex: 1 });
+  ok('add exam question', WQ.status === 200 && WQ.data.state.weeklyExams.find(e => e.id === WE.data.examId).questions.length === 1);
+  const WD = await api(`/api/weekly-exams/${WE.data.examId}`, 'DELETE');
+  ok('delete weekly exam', WD.status === 200 && !WD.data.state.weeklyExams.some(e => e.id === WE.data.examId));
+
+  console.log('== 6. Leaderboard ==');
+  const lb = await api('/api/weekly-exams/week1/leaderboard');
+  ok('leaderboard rows = 6', lb.status === 200 && lb.data.board.length === 6);
+  ok('leaderboard rank order', lb.data.board[0].rank === 1 && lb.data.board[0].percentage >= lb.data.board[1].percentage);
+
+  console.log('== 7. Admin: users / classes / notices ==');
+  const AU = await api('/api/users', 'POST', { name: 'API Student', email: `apitest${Date.now()}@demo.com`, password: 'demo123', role: 'student', classId: 'cls9' });
+  ok('add student', AU.status === 200 && AU.data.state.users.some(u => u.name === 'API Student'));
+  const newId = AU.data.state.users.find(u => u.name === 'API Student').id;
+  const DU = await api(`/api/users/${newId}`, 'DELETE');
+  ok('delete student', DU.status === 200 && !DU.data.state.users.some(u => u.name === 'API Student'));
+  const dup = await api('/api/users', 'POST', { name: 'Dup', email: 'student@demo.com', password: 'demo123', role: 'student' });
+  ok('duplicate email rejected (409)', dup.status === 409);
+  const AN = await api('/api/notices', 'POST', { title: 'API Notice', body: 'test body' });
+  ok('publish notice', AN.status === 200 && AN.data.state.notices.some(n => n.title === 'API Notice'));
+  const nid = AN.data.state.notices.find(n => n.title === 'API Notice').id;
+  const DN = await api(`/api/notices/${nid}`, 'DELETE');
+  ok('delete notice', DN.status === 200 && !DN.data.state.notices.some(n => n.title === 'API Notice'));
+
+  console.log('== 8. Persistence: file-based DB ==');
+  ok('results still include API-submitted result', (await api('/api/state')).data.results.some(r => r.id === sub.data.resultId));
+
+  console.log(`\nRESULT: ${pass} passed, ${fail} failed`);
+  process.exit(fail ? 1 : 0);
+})().catch((e) => { console.error('SCRIPT ERROR:', e.message); process.exit(2); });
