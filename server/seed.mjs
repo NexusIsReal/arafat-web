@@ -63,9 +63,11 @@ const CHAPTERS = {
 
 const USERS = [
   { id: 'usr_admin', name: 'মোঃ আব্দুল করিম', email: 'admin@demo.com', password: 'demo123', role: 'admin', designation: 'প্রধান শিক্ষক' },
-  { id: 'usr_t1', name: 'রহিম উদ্দিন', email: 'teacher@demo.com', password: 'demo123', role: 'teacher', designation: 'সহকারী শিক্ষক', subject: 'পদার্থবিজ্ঞান' },
-  { id: 'usr_t2', name: 'সালমা খাতুন', email: 'salma@demo.com', password: 'demo123', role: 'teacher', designation: 'সহকারী শিক্ষক', subject: 'রসায়ন' },
-  { id: 'usr_t3', name: 'আনোয়ার হোসেন', email: 'anwar@demo.com', password: 'demo123', role: 'teacher', designation: 'সহকারী শিক্ষক', subject: 'গণিত' },
+  { id: 'usr_t1', name: 'Kawsar Sarkar', email: 'teacher@demo.com', password: 'demo123', role: 'teacher', designation: 'সহকারী শিক্ষক', subject: 'ICT' },
+  { id: 'usr_t2', name: 'Shuvro Saha', email: 'shuvro@demo.com', password: 'demo123', role: 'teacher', designation: 'সহকারী শিক্ষক', subject: 'ICT' },
+  { id: 'usr_t3', name: 'Salam', email: 'salam@demo.com', password: 'demo123', role: 'teacher', designation: 'সহকারী শিক্ষক', subject: 'Religion' },
+  { id: 'usr_t4', name: 'Suman Ali', email: 'suman@demo.com', password: 'demo123', role: 'teacher', designation: 'সহকারী শিক্ষক', subject: 'Math' },
+  { id: 'usr_t5', name: 'Benedict Gomes', email: 'benedict@demo.com', password: 'demo123', role: 'teacher', designation: 'সহকারী শিক্ষক', subject: 'English' },
   { id: 'usr_s1', name: 'Arafat Rahman', email: 'student@demo.com', password: 'demo123', role: 'student', classId: 'cls9', roll: '01' },
   { id: 'usr_s2', name: 'Kabbo Mahmud', email: 'kabbo@demo.com', password: 'demo123', role: 'student', classId: 'cls9', roll: '02' },
   { id: 'usr_s3', name: 'Saif Khan', email: 'saif@demo.com', password: 'demo123', role: 'student', classId: 'cls9', roll: '03' },

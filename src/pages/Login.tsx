@@ -5,7 +5,7 @@ import { Card, inputCls } from '../components/ui';
 
 const DEMO_ACCOUNTS = [
   { role: 'Student', email: 'student@demo.com', password: 'demo123', name: 'Arafat Rahman — Class 9', color: 'from-blue-500 to-cyan-400' },
-  { role: 'Teacher', email: 'teacher@demo.com', password: 'demo123', name: 'রহিম উদ্দিন — পদার্থবিজ্ঞান', color: 'from-emerald-500 to-teal-400' },
+  { role: 'Teacher', email: 'teacher@demo.com', password: 'demo123', name: 'Kawsar Sarkar — ICT', color: 'from-emerald-500 to-teal-400' },
   { role: 'Admin', email: 'admin@demo.com', password: 'demo123', name: 'মোঃ আব্দুল করিম — প্রধান শিক্ষক', color: 'from-violet-500 to-purple-400' },
 ];
 
