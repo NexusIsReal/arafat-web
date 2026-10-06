@@ -74,6 +74,11 @@ async function api(path, method = 'GET', body) {
   ok('add MCQ (21 now)', M.status === 200 && M.data.state.chapters.find(c => c.id === 'cls9_phy_c1').mcq.questions.length === 21);
   const D = await api(`/api/mcq/${addedMcq.id}`, 'DELETE');
   ok('delete MCQ (back to 20)', D.status === 200 && D.data.state.chapters.find(c => c.id === 'cls9_phy_c1').mcq.questions.length === 20);
+  // cleanup: remove test-content so repeated runs stay consistent
+  const afterAdd = D.data.state.chapters.find(c => c.id === 'cls9_phy_c1');
+  for (const l of afterAdd.lectures.filter(x => x.title === 'API Test Lecture')) await api(`/api/lectures/${l.id}`, 'DELETE');
+  for (const n of afterAdd.notes.filter(x => x.title === 'API Test Note')) await api(`/api/notes/${n.id}`, 'DELETE');
+  for (const p of afterAdd.practice.filter(x => x.question === 'API Test Q?')) await api(`/api/practice/${p.id}`, 'DELETE');
 
   console.log('== 5. Teacher: weekly exam lifecycle ==');
   const WE = await api('/api/weekly-exams', 'POST', { title: 'API Test Exam', durationMin: 5 });
@@ -102,8 +107,41 @@ async function api(path, method = 'GET', body) {
   const DN = await api(`/api/notices/${nid}`, 'DELETE');
   ok('delete notice', DN.status === 200 && !DN.data.state.notices.some(n => n.title === 'API Notice'));
 
-  console.log('== 8. Persistence: file-based DB ==');
-  ok('results still include API-submitted result', (await api('/api/state')).data.results.some(r => r.id === sub.data.resultId));
+  console.log('== 8. A-to-Z: user edit / results / chapters / content delete ==');
+  const EU = await api('/api/users', 'POST', { name: 'Edit Me', email: `editme${Date.now()}@demo.com`, password: 'demo123', role: 'student', classId: 'cls9' });
+  const euId = EU.data.state.users.find(u => u.name === 'Edit Me').id;
+  const UP = await api(`/api/users/${euId}`, 'PUT', { name: 'Edited Name', roll: '99', password: 'newpass1' });
+  const edited = UP.data.state.users.find(u => u.id === euId);
+  ok('edit user (name/roll)', UP.status === 200 && edited.name === 'Edited Name' && edited.roll === '99');
+  const ulogin = await api('/api/login', 'POST', { email: edited.email, password: 'newpass1' });
+  ok('edited password works on login', ulogin.status === 200);
+  await api(`/api/users/${euId}`, 'DELETE');
+
+  const dr = await api(`/api/results/${sub.data.resultId}`, 'DELETE');
+  ok('delete result', dr.status === 200 && !dr.data.state.results.some(r => r.id === sub.data.resultId));
+
+  const NC = await api('/api/subjects/cls9_ban/chapters', 'POST', { name: 'API Chapter' });
+  const ncId = NC.data.chapterId;
+  const nc = NC.data.state.chapters.find(c => c.id === ncId);
+  ok('add chapter (order=4, default note)', NC.status === 200 && nc.order === 4 && nc.notes.length === 1);
+  const nl = await api(`/api/chapters/${ncId}/lectures`, 'POST', { title: 'Temp Lecture', videoUrl: 'https://www.youtube.com/embed/x' });
+  const nlCh = nl.data.state.chapters.find(c => c.id === ncId);
+  const dl = await api(`/api/lectures/${nlCh.lectures[0].id}`, 'DELETE');
+  ok('delete lecture', dl.status === 200 && dl.data.state.chapters.find(c => c.id === ncId).lectures.length === 0);
+  const nn = await api(`/api/chapters/${ncId}/notes`, 'POST', { title: 'Temp Note', content: 'x' });
+  const nnCh = nn.data.state.chapters.find(c => c.id === ncId);
+  const tempNote = nnCh.notes.find(n => n.title === 'Temp Note');
+  const dn = await api(`/api/notes/${tempNote.id}`, 'DELETE');
+  ok('delete note', dn.status === 200 && !dn.data.state.chapters.find(c => c.id === ncId).notes.some(n => n.title === 'Temp Note'));
+  const np = await api(`/api/chapters/${ncId}/practice`, 'POST', { question: 'Temp Q?', answer: 'A' });
+  const npCh = np.data.state.chapters.find(c => c.id === ncId);
+  const dp = await api(`/api/practice/${npCh.practice[0].id}`, 'DELETE');
+  ok('delete practice', dp.status === 200 && dp.data.state.chapters.find(c => c.id === ncId).practice.length === 0);
+  const DC = await api(`/api/chapters/${ncId}`, 'DELETE');
+  ok('delete chapter (cascade, back to 3)', DC.status === 200 && !DC.data.state.chapters.some(c => c.id === ncId));
+
+  console.log('== 9. Persistence: file-based DB ==');
+  ok('results count consistent after deletes', (await api('/api/state')).data.results.length >= 15);
 
   console.log(`\nRESULT: ${pass} passed, ${fail} failed`);
   process.exit(fail ? 1 : 0);

@@ -264,6 +264,82 @@ app.delete('/api/notices/:id', (req, res) => {
   res.json({ ok: true, state: getState() });
 });
 
+// ---------- Admin/Teacher: user edit ----------
+
+app.put('/api/users/:id', (req, res) => {
+  const { name, email, classId, roll, password, subject, designation } = req.body ?? {};
+  const u = db.prepare('SELECT * FROM users WHERE id = ?').get(req.params.id);
+  if (!u) return res.status(404).json({ error: 'User not found' });
+  try {
+    db.prepare(
+      'UPDATE users SET name = ?, email = ?, class_id = ?, roll = ?, password = ?, subject = ?, designation = ? WHERE id = ?'
+    ).run(
+      name?.trim() || u.name,
+      email?.trim() || u.email,
+      classId ?? u.class_id,
+      roll ?? u.roll,
+      password?.trim() || u.password,
+      subject ?? u.subject,
+      designation ?? u.designation,
+      req.params.id
+    );
+  } catch (e) {
+    if (String(e).includes('UNIQUE')) return res.status(409).json({ error: 'এই Email আগে থেকেই আছে।' });
+    throw e;
+  }
+  res.json({ ok: true, state: getState() });
+});
+
+// ---------- Admin: results ----------
+
+app.delete('/api/results/:id', (req, res) => {
+  db.prepare('DELETE FROM results WHERE id = ?').run(req.params.id);
+  res.json({ ok: true, state: getState() });
+});
+
+// ---------- Admin: chapters ----------
+
+app.post('/api/subjects/:id/chapters', (req, res) => {
+  const { name } = req.body ?? {};
+  if (!name?.trim()) return res.status(400).json({ error: 'Chapter name required' });
+  const subject = db.prepare('SELECT id FROM subjects WHERE id = ?').get(req.params.id);
+  if (!subject) return res.status(404).json({ error: 'Subject not found' });
+  const order = db.prepare('SELECT COALESCE(MAX(sort_order), 0) + 1 AS n FROM chapters WHERE subject_id = ?').get(req.params.id).n;
+  const id = uid('ch');
+  db.prepare('INSERT INTO chapters (id, subject_id, name, sort_order, mcq_title, mcq_duration_min) VALUES (?, ?, ?, ?, ?, ?)')
+    .run(id, req.params.id, name.trim(), order, `${name.trim()} — MCQ Test`, 0);
+  db.prepare('INSERT INTO notes (id, chapter_id, title, content) VALUES (?, ?, ?, ?)')
+    .run(uid('note'), id, `${name.trim()} — সংক্ষিপ্ত নোট`, `এই অধ্যায়ের মূল বিষয়বস্তু:\n• ${name.trim()}-এর মৌলিক ধারণা ও সংজ্ঞা\n• গুরুত্বপূর্ণ সূত্র ও উদাহরণ\n\nবিস্তারিত নোট ও PDF শিক্ষক শীঘ্রই যোগ করবেন।`);
+  res.json({ ok: true, chapterId: id, state: getState() });
+});
+
+app.delete('/api/chapters/:id', (req, res) => {
+  const id = req.params.id;
+  db.prepare('DELETE FROM lectures WHERE chapter_id = ?').run(id);
+  db.prepare('DELETE FROM notes WHERE chapter_id = ?').run(id);
+  db.prepare('DELETE FROM practice_questions WHERE chapter_id = ?').run(id);
+  db.prepare('DELETE FROM mcq_questions WHERE chapter_id = ?').run(id);
+  db.prepare('DELETE FROM chapters WHERE id = ?').run(id);
+  res.json({ ok: true, state: getState() });
+});
+
+// ---------- Admin/Teacher: content delete ----------
+
+app.delete('/api/lectures/:id', (req, res) => {
+  db.prepare('DELETE FROM lectures WHERE id = ?').run(req.params.id);
+  res.json({ ok: true, state: getState() });
+});
+
+app.delete('/api/notes/:id', (req, res) => {
+  db.prepare('DELETE FROM notes WHERE id = ?').run(req.params.id);
+  res.json({ ok: true, state: getState() });
+});
+
+app.delete('/api/practice/:id', (req, res) => {
+  db.prepare('DELETE FROM practice_questions WHERE id = ?').run(req.params.id);
+  res.json({ ok: true, state: getState() });
+});
+
 // ---------- Static (production) ----------
 
 const distDir = path.join(__dirname, '..', 'dist');

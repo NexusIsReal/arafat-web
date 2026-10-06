@@ -175,6 +175,54 @@ export default function TeacherPanel() {
             </>
           )}
           <button type="button" {...btnPrimary()} onClick={saveContent} disabled={!pick.chapterId}>Save →</button>
+
+          {chapter && (
+            <div className="space-y-2 border-t border-slate-100 pt-4">
+              <p className="text-sm font-bold text-slate-700">{chapter.name} — বর্তমান Content</p>
+              {chapter.lectures.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Lectures ({chapter.lectures.length})</p>
+                  <div className="mt-1 space-y-1.5">
+                    {chapter.lectures.map((l) => (
+                      <div key={l.id} className="flex items-center justify-between gap-2 rounded-lg bg-slate-50 p-2 text-xs ring-1 ring-slate-100">
+                        <span className="font-medium text-slate-700">{l.title}</span>
+                        <button onClick={() => mutate(`/lectures/${l.id}`, 'DELETE').catch(() => {})} className="shrink-0 font-bold text-rose-500">×</button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {chapter.notes.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Notes ({chapter.notes.length})</p>
+                  <div className="mt-1 space-y-1.5">
+                    {chapter.notes.map((n) => (
+                      <div key={n.id} className="flex items-center justify-between gap-2 rounded-lg bg-slate-50 p-2 text-xs ring-1 ring-slate-100">
+                        <span className="font-medium text-slate-700">{n.title}</span>
+                        <button onClick={() => mutate(`/notes/${n.id}`, 'DELETE').catch(() => {})} className="shrink-0 font-bold text-rose-500">×</button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {chapter.practice.length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Practice ({chapter.practice.length})</p>
+                  <div className="mt-1 max-h-48 space-y-1.5 overflow-y-auto">
+                    {chapter.practice.map((p) => (
+                      <div key={p.id} className="flex items-start justify-between gap-2 rounded-lg bg-slate-50 p-2 text-xs ring-1 ring-slate-100">
+                        <span className="font-medium text-slate-700">{p.question.slice(0, 70)}{p.question.length > 70 ? '…' : ''}</span>
+                        <button onClick={() => mutate(`/practice/${p.id}`, 'DELETE').catch(() => {})} className="shrink-0 font-bold text-rose-500">×</button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {!chapter.lectures.length && !chapter.practice.length && chapter.notes.length <= 1 && (
+                <p className="text-xs text-slate-400">এই অধ্যায়ে এখনো বাড়তি কনটেন্ট নেই — উপরের ফর্ম থেকে যোগ করুন।</p>
+              )}
+            </div>
+          )}
         </Card>
       )}
 
