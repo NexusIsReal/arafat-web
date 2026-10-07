@@ -18,11 +18,14 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-24">
           <div className="max-w-3xl">
             <span className="inline-flex items-center rounded-full bg-white/15 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider ring-1 ring-white/30">
-              Official E-Learning Platform · Science Fair Demo
+              Official E-Learning Platform · {db.school.nameEn}
             </span>
             <h1 className="mt-5 text-3xl font-extrabold leading-tight sm:text-5xl">
-              E-Learning <span className="text-amber-300">Bangladesh</span>
+              Josephite <span className="text-amber-300">Learning</span>
             </h1>
+            {db.school.tagline && (
+              <p className="mt-2 text-sm font-semibold uppercase tracking-wider text-indigo-200">{db.school.tagline}</p>
+            )}
             <p className="mt-4 text-lg font-medium text-indigo-100 sm:text-xl">
               স্কুলে যা শিখেছো, তা যেন ভুলে না যায় — নিয়মিত Practice-এর মাধ্যমে পরীক্ষার জন্য প্রস্তুত হও।
             </p>
@@ -171,13 +174,17 @@ export default function Home() {
         <div className="mt-14">
           <SectionTitle title="About Our School" sub={db.school.nameEn} />
           <Card className="p-6 sm:p-8">
-            <p className="leading-relaxed text-slate-600">
-              {db.school.name} একটি আদর্শ শিক্ষা প্রতিষ্ঠান। আমাদের শিক্ষকরা প্রতিদিন বিভিন্ন বিষয় পড়ান; কিন্তু অনেক শিক্ষার্থী নিয়মিত Revision ও
-              Practice না করার কারণে শেখা বিষয় ভুলে যায়। <strong className="text-slate-800">E-Learning Bangladesh</strong> এই সমস্যার সমাধানে তৈরি —
-              স্কুলে যে Class/Lecture হয়, তার ভিডিও, নোট, Practice ও MCQ Test এই প্ল্যাটফর্মেই থাকবে।
-              <br /><br />
-              <strong className="text-slate-800">School Class → Online Revision → Practice → MCQ Test → Result → Improvement</strong>
-            </p>
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
+              <img src="/logo.svg" alt="Josephite Learning" className="h-20 w-20 shrink-0" />
+              <div className="min-w-0">
+                <p className="leading-relaxed text-slate-600">
+                  {db.school.about ?? `${db.school.name} একটি ঐতিহ্যবাহী শিক্ষাপ্রতিষ্ঠান।`}
+                </p>
+                <p className="mt-4 leading-relaxed text-slate-600">
+                  <strong className="text-slate-800">School Class → Online Revision → Practice → MCQ Test → Result → Improvement</strong>
+                </p>
+              </div>
+            </div>
           </Card>
         </div>
 
@@ -187,15 +194,28 @@ export default function Home() {
           <div className="grid gap-4 sm:grid-cols-3">
             {teachers.map((t) => (
               <Card key={t.id} className="p-6 text-center">
-                <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-blue-400 text-xl font-extrabold text-white">
-                  {t.name.charAt(0)}
-                </div>
+                {t.photoUrl ? (
+                  <img
+                    src={t.photoUrl}
+                    alt={t.name}
+                    className="mx-auto mb-3 h-20 w-20 rounded-full object-cover ring-2 ring-indigo-100"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
+                ) : null}
+                {!t.photoUrl && (
+                  <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-blue-400 text-xl font-extrabold text-white">
+                    {t.name.charAt(0)}
+                  </div>
+                )}
                 <p className="font-bold text-slate-800">{t.name}</p>
                 <p className="text-sm text-slate-500">{t.designation}</p>
                 {t.subject && <Badge tone="indigo">{t.subject}</Badge>}
               </Card>
             ))}
           </div>
+          <p className="mt-4 text-center text-xs text-slate-400">
+            শিক্ষকদের ছবি Admin Panel → Teacher Management থেকে যুক্ত করা যায়।
+          </p>
         </div>
 
         {/* Contact */}

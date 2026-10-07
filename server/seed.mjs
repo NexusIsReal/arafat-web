@@ -454,7 +454,7 @@ export function seedIfEmpty() {
     // Notices
     const insNotice = db.prepare('INSERT INTO notices (id, title, body, date) VALUES (?, ?, ?, ?)');
     insNotice.run('ntc1', 'সাপ্তাহিক পরীক্ষা — Week 01 শুরু হয়েছে', 'পদার্থবিজ্ঞান ও গণিত বিষয়ের উপর এই সপ্তাহের সাপ্তাহিক MCQ পরীক্ষা শুরু হয়েছে। সকল শিক্ষার্থী নির্দিষ্ট সময়ের মধ্যে পরীক্ষা দেওয়ার জন্য উৎসাহিত করা হচ্ছে। পরীক্ষার ফলাফল ও লিডারবোর্ড সাথে সাথেই প্রকাশিত হবে।', daysAgo(1));
-    insNotice.run('ntc2', 'Science Fair ২০২৬ — আমাদের ICT প্রজেক্ট', 'আমাদের স্কুলের Science Fair-এ "E-Learning Bangladesh" প্রজেক্ট প্রদর্শনী হবে। এটি আমাদের স্কুলের শিক্ষার্থীদের নিয়মিত Revision ও Practice-এর জন্য তৈরি একটি Practice-Based E-Learning Platform।', daysAgo(3));
+    insNotice.run('ntc2', 'Josephite Learning — আমাদের অফিসিয়াল ই-লার্নিং প্লাটফর্ম', 'সেন্ট জোসেফাইট স্কুল এন্ড কলেজের শিক্ষার্থীদের নিয়মিত Revision ও Practice-এর জন্য "Josephite Learning" প্লাটফর্ম চালু হয়েছে। এখানে ক্লাসের ভিডিও লেকচার, নোট, প্র্যাকটিস ও MCQ Test — সবকিছু একসাথে পাওয়া যাবে।', daysAgo(3));
     insNotice.run('ntc3', 'প্রতিটি অধ্যায়ে ২৫টি MCQ যোগ হয়েছে', 'Class 6-10-এর সব বিষয়ের প্রতিটি অধ্যায়ে এখন ২৫টি করে MCQ প্রশ্ন, নোট ও প্র্যাকটিস প্রশ্ন যোগ করা হয়েছে। শিক্ষার্থীরা এখন যেকোনো অধ্যায়ে MCQ Test দিতে পারবে।', daysAgo(5));
   });
 

@@ -30,12 +30,10 @@ export default function Layout() {
       <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <Link to="/" className="flex items-center gap-3" onClick={() => setOpen(false)}>
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-blue-500 text-sm font-extrabold text-white shadow">
-              eL
-            </div>
+            <img src="/logo.svg" alt="Josephite Learning logo" className="h-10 w-10 shrink-0" />
             <div className="leading-tight">
-              <p className="text-sm font-extrabold text-slate-900 sm:text-base">E-Learning Bangladesh</p>
-              <p className="text-[11px] text-slate-500">{db.school.name} · {db.school.nameEn}</p>
+              <p className="text-sm font-extrabold text-slate-900 sm:text-base">Josephite Learning</p>
+              <p className="text-[11px] text-slate-500">{db.school.name}</p>
             </div>
           </Link>
 
@@ -107,8 +105,15 @@ export default function Layout() {
       <footer className="mt-12 bg-slate-900 text-slate-300">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-3">
           <div>
-            <p className="text-lg font-extrabold text-white">{db.school.name}</p>
+            <div className="flex items-center gap-3">
+              <img src="/logo.svg" alt="" className="h-10 w-10 shrink-0" />
+              <div>
+                <p className="text-lg font-extrabold text-white">Josephite Learning</p>
+                <p className="text-sm">{db.school.name}</p>
+              </div>
+            </div>
             <p className="text-sm">{db.school.nameEn}</p>
+            {db.school.tagline && <p className="mt-2 text-xs font-semibold uppercase tracking-wider text-slate-400">{db.school.tagline}</p>}
             <p className="mt-3 text-sm leading-relaxed">Learn → Practice → Test → Improve</p>
             <p className="mt-1 text-sm text-slate-400">শিখুন → অনুশীলন করুন → নিজেকে যাচাই করুন → উন্নতি করুন।</p>
           </div>
@@ -138,7 +143,7 @@ export default function Layout() {
           </div>
         </div>
         <div className="border-t border-slate-800 py-4 text-center text-xs text-slate-400">
-          © {new Date().getFullYear()} E-Learning Bangladesh — Practice-Based School E-Learning Platform (Science Fair Demo)
+          © {new Date().getFullYear()} Josephite Learning — {db.school.nameEn} (Official E-Learning Platform)
         </div>
       </footer>
     </div>

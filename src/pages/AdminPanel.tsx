@@ -23,6 +23,8 @@ export default function AdminPanel() {
   const [tName, setTName] = useState('');
   const [tEmail, setTEmail] = useState('');
   const [tSubject, setTSubject] = useState('');
+  const [tDesignation, setTDesignation] = useState('');
+  const [tPhoto, setTPhoto] = useState('');
   // class/subject form
   const [cName, setCName] = useState('');
   const [cNameBn, setCNameBn] = useState('');
@@ -38,10 +40,10 @@ export default function AdminPanel() {
   // confirm dialog
   const [confirmState, setConfirmState] = useState<{ title: string; message: string; action: () => void } | null>(null);
   // chapter management
-  const [chSubject, setChSubject] = useState('cls9_ban');
+  const [chSubject, setChSubject] = useState('cls9_ban1');
   const [chName, setChName] = useState('');
   // content management
-  const [ctSubject, setCtSubject] = useState('cls9_ban');
+  const [ctSubject, setCtSubject] = useState('cls9_ban1');
   const [ctChapter, setCtChapter] = useState('');
 
   const students = db.users.filter((u) => u.role === 'student');
@@ -58,6 +60,7 @@ export default function AdminPanel() {
         roll: editUser.roll ?? null,
         password: editUser.newPassword || undefined,
         subject: editUser.subject ?? null,
+        photoUrl: editUser.photoUrl?.trim() || null,
       });
       setEditUser(null);
       toast('success', 'User সফলভাবে আপডেট হয়েছে ✓');
@@ -111,6 +114,12 @@ export default function AdminPanel() {
               <input className={inputCls()} placeholder="Subject" value={editUser.subject ?? ''} onChange={(e) => setEditUser({ ...editUser, subject: e.target.value })} />
             )}
             <input className={inputCls()} type="text" placeholder="নতুন Password (খালি রাখলে অপরিবর্তিত থাকবে)" value={editUser.newPassword} onChange={(e) => setEditUser({ ...editUser, newPassword: e.target.value })} />
+            {editUser.role === 'teacher' && (
+              <div>
+                <input className={inputCls()} type="url" placeholder="Photo URL (ছবির লিংক — ঐচ্ছিক)" value={editUser.photoUrl ?? ''} onChange={(e) => setEditUser({ ...editUser, photoUrl: e.target.value })} />
+                <p className="mt-1 text-xs text-slate-400">ছবির অনলাইন লিংক (https://…) দিলে Homepage-এর Teachers সেকশনে দেখা যাবে।</p>
+              </div>
+            )}
             <div className="flex justify-end gap-3 pt-2">
               <button onClick={() => setEditUser(null)} {...btnGhost()}>Cancel</button>
               <button onClick={saveEdit} {...btnPrimary()}>Save Changes</button>
@@ -260,6 +269,8 @@ export default function AdminPanel() {
             <p className="font-bold text-slate-800">নতুন Teacher যোগ করুন</p>
             <input className={inputCls()} placeholder="Teacher Name" value={tName} onChange={(e) => setTName(e.target.value)} />
             <input className={inputCls()} placeholder="Email" value={tEmail} onChange={(e) => setTEmail(e.target.value)} />
+            <input className={inputCls()} placeholder="Designation (যেমন: সহকারী শিক্ষক)" value={tDesignation} onChange={(e) => setTDesignation(e.target.value)} />
+            <input className={inputCls()} type="url" placeholder="Photo URL (ছবির লিংক — ঐচ্ছিক)" value={tPhoto} onChange={(e) => setTPhoto(e.target.value)} />
             <select className={inputCls()} value={tSubject} onChange={(e) => setTSubject(e.target.value)}>
               <option value="">Subject (optional)…</option>
               {Object.entries(SUBJECT_META).map(([code, m]) => <option key={code} value={m.name}>{m.name}</option>)}
@@ -269,8 +280,8 @@ export default function AdminPanel() {
               onClick={async () => {
                 if (!tName.trim() || !tEmail.trim()) return;
                 try {
-                  await mutate('/users', 'POST', { name: tName.trim(), email: tEmail.trim(), password: 'demo123', role: 'teacher', designation: 'সহকারী শিক্ষক', subject: tSubject || undefined });
-                  setTName(''); setTEmail(''); setTSubject('');
+                  await mutate('/users', 'POST', { name: tName.trim(), email: tEmail.trim(), password: 'demo123', role: 'teacher', designation: tDesignation.trim() || 'সহকারী শিক্ষক', subject: tSubject || undefined, photoUrl: tPhoto.trim() || undefined });
+                  setTName(''); setTEmail(''); setTSubject(''); setTPhoto(''); setTDesignation('');
                   toast('success', `${tName.trim()} যোগ হয়েছে ✓ (Password: demo123)`);
                 } catch (e) {
                   toast('error', (e as Error).message);

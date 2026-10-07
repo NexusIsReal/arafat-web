@@ -122,4 +122,7 @@ CREATE TABLE IF NOT EXISTS comments (
 );
 `);
 
+// Lightweight migrations for existing DBs
+try { db.exec('ALTER TABLE users ADD COLUMN photo_url TEXT'); } catch { /* column exists */ }
+
 export const DB_FILE = DB_PATH;

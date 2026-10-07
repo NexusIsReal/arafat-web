@@ -16,13 +16,15 @@ console.log('[db] Using SQLite database:', DB_FILE);
 const uid = (p) => `${p}_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
 
 const SCHOOL = {
-  name: 'সেন্ট জোসেফ স্কুল এন্ড কলেজ',
-  nameEn: 'St. Joseph School & College',
+  name: 'সেন্ট জোসেফাইট স্কুল এন্ড কলেজ',
+  nameEn: 'St. Josephite School & College',
   address: 'বনপাড়া, বড়াইগ্রাম, নাটোর, রাজশাহী, বাংলাদেশ',
   phone: '+880 1XXX-XXXXXX',
   email: 'stjosephbon123915@gmail.com',
   eiin: '123915',
   facebook: 'https://www.facebook.com/sjscb',
+  tagline: 'Empowering Minds, Enlightening Futures',
+  about: 'সেন্ট জোসেফাইট স্কুল এন্ড কলেজ, বনপাড়া, নাটোর একটি ঐতিহ্যবাহী শিক্ষাপ্রতিষ্ঠান। আমাদের ক্যাম্পাস শান্ত ও সবুজে ঘেরা — শিক্ষার্থীদের জন্য একটি সহায়ক শিক্ষা পরিবেশ তৈরি করেছে। প্রতিষ্ঠানের অভিজ্ঞ ও নিবেদিতপ্রাণ শিক্ষকমণ্ডলী শিক্ষার্থীদের মেধা বিকাশে নিরলসভাবে কাজ করে যাচ্ছেন। আমাদের স্কুলে মূল্যবোধ, নৈতিকতা ও সামাজিক দায়িত্ববোধের প্রতি অঙ্গীকার রয়েছে — পাঠ্যবইয়ের পাশাপাশি নৈতিক শিক্ষার মাধ্যমে আমরা শিক্ষার্থীদের গড়ে তুলি। Josephite Learning প্লাটফর্মটি ডিজিটাল শিক্ষা পদ্ধতির মাধ্যমে এই লক্ষ্যেই কাজ করে। শিক্ষার্থীরা নিয়মিত পাঠদানের পাশাপাশি নোট, প্র্যাকটিস, কুইজ এবং সাপ্তাহিক পরীক্ষার মাধ্যমে নিজেদের প্রস্তুতি যাচাই করতে পারে। এই প্লাটফর্মটি শিক্ষার্থীদের সুবিধার্থে প্রণয়ন করা হয়েছে — প্রতিষ্ঠানের শিক্ষার্থীদের মেধা বিকাশের চৌকস হাতিয়ার হিসেবে Josephite Learning কাজ করবে।',
 };
 
 // ---------- State snapshot ----------
@@ -32,6 +34,7 @@ function getState() {
     id: u.id, name: u.name, email: u.email, password: u.password, role: u.role,
     designation: u.designation ?? undefined, subject: u.subject ?? undefined,
     classId: u.class_id ?? undefined, roll: u.roll ?? undefined,
+    photoUrl: u.photo_url ?? undefined,
   }));
   const classes = db.prepare('SELECT * FROM classes ORDER BY id').all().map((c) => ({ id: c.id, name: c.name, nameBn: c.name_bn }));
   const subjects = db.prepare('SELECT * FROM subjects ORDER BY id').all().map((s) => ({ id: s.id, classId: s.class_id, name: s.name, code: s.code, color: s.color }));
@@ -233,11 +236,11 @@ app.delete('/api/weekly-exams/:id', (req, res) => {
 // ---------- Admin: users ----------
 
 app.post('/api/users', (req, res) => {
-  const { name, email, password, role, classId, roll, subject, designation } = req.body ?? {};
+  const { name, email, password, role, classId, roll, subject, designation, photoUrl } = req.body ?? {};
   if (!name?.trim() || !email?.trim() || !role) return res.status(400).json({ error: 'Name, email and role required' });
   try {
-    db.prepare('INSERT INTO users (id, name, email, password, role, designation, subject, class_id, roll) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
-      .run(uid('usr'), name.trim(), email.trim(), password || 'demo123', role, designation || null, subject || null, classId || null, roll || null);
+    db.prepare('INSERT INTO users (id, name, email, password, role, designation, subject, class_id, roll, photo_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+      .run(uid('usr'), name.trim(), email.trim(), password || 'demo123', role, designation || null, subject || null, classId || null, roll || null, photoUrl || null);
   } catch (e) {
     if (String(e).includes('UNIQUE')) return res.status(409).json({ error: 'এই Email আগে থেকেই আছে।' });
     throw e;
@@ -306,12 +309,12 @@ app.delete('/api/notices/:id', (req, res) => {
 // ---------- Admin/Teacher: user edit ----------
 
 app.put('/api/users/:id', (req, res) => {
-  const { name, email, classId, roll, password, subject, designation } = req.body ?? {};
+  const { name, email, classId, roll, password, subject, designation, photoUrl } = req.body ?? {};
   const u = db.prepare('SELECT * FROM users WHERE id = ?').get(req.params.id);
   if (!u) return res.status(404).json({ error: 'User not found' });
   try {
     db.prepare(
-      'UPDATE users SET name = ?, email = ?, class_id = ?, roll = ?, password = ?, subject = ?, designation = ? WHERE id = ?'
+      'UPDATE users SET name = ?, email = ?, class_id = ?, roll = ?, password = ?, subject = ?, designation = ?, photo_url = ? WHERE id = ?'
     ).run(
       name?.trim() || u.name,
       email?.trim() || u.email,
@@ -320,6 +323,7 @@ app.put('/api/users/:id', (req, res) => {
       password?.trim() || u.password,
       subject ?? u.subject,
       designation ?? u.designation,
+      photoUrl ?? u.photo_url,
       req.params.id
     );
   } catch (e) {
@@ -397,6 +401,6 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`[server] E-Learning Bangladesh API running at http://localhost:${PORT}`);
+  console.log(`[server] Josephite Learning API running at http://localhost:${PORT}`);
   if (fs.existsSync(distDir)) console.log(`[server] Serving production build from dist/`);
 });

@@ -38,7 +38,7 @@ export default function Login() {
         <div>
           <h1 className="text-2xl font-extrabold text-slate-900 sm:text-3xl">Welcome Back!</h1>
           <p className="mt-2 text-slate-600">
-            E-Learning Bangladesh-এ লগইন করে পড়াশোনা চালিয়ে যাও — Lecture দেখো, Practice করো এবং MCQ Test দাও।
+            Josephite Learning-এ লগইন করে পড়াশোনা চালিয়ে যাও — Lecture দেখো, Practice করো এবং MCQ Test দাও।
           </p>
 
           <p className="mt-8 text-sm font-bold uppercase tracking-wider text-slate-500">Demo Accounts (Science Fair Demo)</p>

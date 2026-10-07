@@ -8,6 +8,8 @@ export interface SchoolInfo {
   email: string;
   eiin: string;
   facebook?: string;
+  tagline?: string;
+  about?: string;
 }
 
 export interface User {
@@ -20,6 +22,7 @@ export interface User {
   subject?: string;
   classId?: string;
   roll?: string;
+  photoUrl?: string;
 }
 
 export interface SchoolClass {
