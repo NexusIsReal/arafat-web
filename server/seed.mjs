@@ -1,16 +1,24 @@
 import { db } from './db.mjs';
+import { CH678 } from './chapters678.mjs';
+import { BAN_ENG_CONTENT } from './chapters910-lang.mjs';
+import { SCI_CONTENT } from './chapters910-sci.mjs';
 
 const DEMO_VIDEO = 'https://www.youtube.com/embed/ZM8ECpBuQYE';
 
 const SUBJECT_META = {
-  ban: { name: 'বাংলা (Bangla)', code: 'BAN', color: 'from-red-500 to-rose-400' },
+  ban1: { name: 'বাংলা ১ম পত্র (Bangla 1st Paper)', code: 'BAN1', color: 'from-red-500 to-rose-400' },
+  ban2: { name: 'বাংলা ২য় পত্র (Bangla 2nd Paper)', code: 'BAN2', color: 'from-rose-500 to-pink-400' },
+  eng1: { name: 'English 1st Paper', code: 'ENG1', color: 'from-sky-500 to-blue-400' },
+  eng2: { name: 'English 2nd Paper', code: 'ENG2', color: 'from-indigo-500 to-violet-400' },
   phy: { name: 'পদার্থবিজ্ঞান (Physics)', code: 'PHY', color: 'from-blue-500 to-cyan-400' },
   chem: { name: 'রসায়ন (Chemistry)', code: 'CHEM', color: 'from-emerald-500 to-teal-400' },
   bio: { name: 'জীববিজ্ঞান (Biology)', code: 'BIO', color: 'from-green-500 to-lime-400' },
   math: { name: 'গণিত (Mathematics)', code: 'MATH', color: 'from-violet-500 to-purple-400' },
   ict: { name: 'ICT', code: 'ICT', color: 'from-orange-500 to-amber-400' },
-  eng: { name: 'English', code: 'ENG', color: 'from-rose-500 to-pink-400' },
   sci: { name: 'বিজ্ঞান (Science)', code: 'SCI', color: 'from-teal-500 to-cyan-400' },
+  bgs: { name: 'বাংলাদেশ ও বিশ্বপরিচয় (BGS)', code: 'BGS', color: 'from-amber-500 to-yellow-400' },
+  rel: { name: 'ধর্ম ও নৈতিক শিক্ষা (Religion)', code: 'REL', color: 'from-lime-500 to-green-400' },
+  him: { name: 'উচ্চতর গণিত (Higher Math)', code: 'HIM', color: 'from-fuchsia-500 to-purple-400' },
 };
 
 const CLASSES = [
@@ -22,43 +30,67 @@ const CLASSES = [
 ];
 
 const CLASS_SUBJECTS = {
-  cls6: ['ban', 'sci', 'math', 'ict', 'eng'],
-  cls7: ['ban', 'sci', 'math', 'ict', 'eng'],
-  cls8: ['ban', 'sci', 'math', 'ict', 'eng'],
-  cls9: ['ban', 'phy', 'chem', 'bio', 'math', 'ict', 'eng'],
-  cls10: ['ban', 'phy', 'chem', 'bio', 'math', 'ict', 'eng'],
+  cls6: ['ban1', 'ban2', 'sci', 'math', 'ict', 'eng1', 'eng2', 'bgs', 'rel'],
+  cls7: ['ban1', 'ban2', 'sci', 'math', 'ict', 'eng1', 'eng2', 'bgs', 'rel'],
+  cls8: ['ban1', 'ban2', 'sci', 'math', 'ict', 'eng1', 'eng2', 'bgs', 'rel'],
+  cls9: ['ban1', 'ban2', 'phy', 'chem', 'bio', 'math', 'ict', 'eng1', 'eng2', 'bgs', 'rel', 'him'],
+  cls10: ['ban1', 'ban2', 'phy', 'chem', 'bio', 'math', 'ict', 'eng1', 'eng2', 'bgs', 'rel', 'him'],
 };
 
 const CHAPTERS = {
-  cls6_ban: ['অনুচ্ছেদ ও রচনা', 'ব্যাকরণ: পদ প্রকরণ', 'সাহিত্য: কবিতা পাঠ'],
+  // Class 6-8
+  cls6_ban1: ['অনুচ্ছেদ ও রচনা', 'ব্যাকরণ: পদ প্রকরণ', 'সাহিত্য: কবিতা পাঠ'],
+  cls7_ban1: ['গদ্য: শিক্ষামূলক প্রবন্ধ', 'ব্যাকরণ: কারক ও বিভক্তি', 'কবিতা পাঠ'],
+  cls8_ban1: ['গদ্য: জাতীয় জীবনে বিজ্ঞান', 'ব্যাকরণ: সমাস', 'সাহিত্যপাঠ: গল্প'],
+  cls6_ban2: ['রচনা ও সারমর্ম', 'বাগ্ধারা ও প্রবাদ', 'আবেদন পত্র ও প্রয়োগ-ভাষা'],
+  cls7_ban2: ['রচনা ও সারমর্ম', 'বাগ্ধারা ও প্রবাদ', 'আবেদন পত্র ও প্রয়োগ-ভাষা'],
+  cls8_ban2: ['রচনা ও সারমর্ম', 'বাগ্ধারা ও প্রবাদ', 'আবেদন পত্র ও প্রয়োগ-ভাষা'],
   cls6_sci: ['আমাদের জীবনে বিজ্ঞান', 'কোষ ও জীবের গঠন', 'শক্তির রূপ পরিবর্তন'],
-  cls6_math: ['সংখ্যা ও পরিমাপ', 'পাটিগণিত ও অনুপাত', 'জ্যামিতিক চিত্র'],
-  cls6_ict: ['তথ্য ও যোগাযোগ প্রযুক্তি পরিচিতি', 'কম্পিউটারের ব্যবহার', 'ইন্টারনেট ও নিরাপত্তা'],
-  cls6_eng: ['Unit 1: Greetings & Introduction', 'Unit 2: My Family', 'Grammar: Present Tense'],
-  cls7_ban: ['গদ্য: শিক্ষামূলক প্রবন্ধ', 'ব্যাকরণ: কারক ও বিভক্তি', 'কবিতা পাঠ'],
   cls7_sci: ['জীবের বৃদ্ধি ও বংশগতি', 'আমাদের শরীরের অন্তর্গঠন', 'সবুজ উদ্ভিদের খাদ্য উৎপাদন'],
-  cls7_math: ['পূর্ণসংখ্যা', 'সেট', 'রাশিমালা ও সূচক'],
-  cls7_ict: ['কম্পিউটার ও অপারেটিং সিস্টেম', 'ওয়ার্ড প্রসেসিং', 'ডেটা ও তথ্য'],
-  cls7_eng: ['Unit 1: Attention Please', 'Unit 2: My Study Guide', 'Grammar: Past Tense'],
-  cls8_ban: ['গদ্য: জাতীয় জীবনে বিজ্ঞান', 'ব্যাকরণ: সমাস', 'সাহিত্যপাঠ: গল্প'],
   cls8_sci: ['জীবনের একক কোষ', 'আলো ও প্রতিসরণ', 'শক্তির উৎস ও ব্যবহার'],
+  cls6_math: ['সংখ্যা ও পরিমাপ', 'পাটিগণিত ও অনুপাত', 'জ্যামিতিক চিত্র'],
+  cls7_math: ['পূর্ণসংখ্যা', 'সেট', 'রাশিমালা ও সূচক'],
   cls8_math: ['প্যাটার্ন ও সেট', 'বীজগাণিতিক রাশি', 'চতুর্ভুজ'],
+  cls6_ict: ['তথ্য ও যোগাযোগ প্রযুক্তি পরিচিতি', 'কম্পিউটারের ব্যবহার', 'ইন্টারনেট ও নিরাপত্তা'],
+  cls7_ict: ['কম্পিউটার ও অপারেটিং সিস্টেম', 'ওয়ার্ড প্রসেসিং', 'ডেটা ও তথ্য'],
   cls8_ict: ['কম্পিউটার নেটওয়ার্ক', 'স্প্রেডশিট ব্যবহার', 'ইমেইল ও ক্লাউড'],
-  cls8_eng: ['Unit 1: Father of the Nation', 'Unit 2: Food and Nutrition', 'Grammar: Future Tense'],
-  cls9_ban: ['বাংলা সাহিত্য: কবিতা', 'ব্যাকরণ: প্রত্যয় ও অনুপ্রাণ', 'গদ্য: প্রবন্ধ রচনা'],
+  cls6_eng1: ['Unit 1: Greetings & Introduction', 'Unit 2: My Family', 'Vocabulary & Reading'],
+  cls7_eng1: ['Unit 1: Attention Please', 'Unit 2: My Study Guide', 'Vocabulary & Reading'],
+  cls8_eng1: ['Unit 1: Father of the Nation', 'Unit 2: Food and Nutrition', 'Vocabulary & Reading'],
+  cls6_eng2: ['Grammar: Articles & Prepositions', 'Tense Basics', 'Writing: Paragraph'],
+  cls7_eng2: ['Grammar: Articles & Prepositions', 'Tense Basics', 'Writing: Paragraph'],
+  cls8_eng2: ['Grammar: Articles & Prepositions', 'Tense Basics', 'Writing: Paragraph'],
+  cls6_bgs: ['আমাদের স্বাধীনতা যুদ্ধ', 'বাংলাদেশের ভূগোল ও জনসংখ্যা', 'সংবিধান ও নাগরিকত্ব'],
+  cls7_bgs: ['আমাদের স্বাধীনতা যুদ্ধ', 'বাংলাদেশের ভূগোল ও জনসংখ্যা', 'সংবিধান ও নাগরিকত্ব'],
+  cls8_bgs: ['আমাদের স্বাধীনতা যুদ্ধ', 'বাংলাদেশের ভূগোল ও জনসংখ্যা', 'সংবিধান ও নাগরিকত্ব'],
+  cls6_rel: ['নৈতিকতা ও মূল্যবোধ', 'ধর্মগ্রন্থের শিক্ষা', 'সহনশীলতা ও সমাজসেবা'],
+  cls7_rel: ['নৈতিকতা ও মূল্যবোধ', 'ধর্মগ্রন্থের শিক্ষা', 'সহনশীলতা ও সমাজসেবা'],
+  cls8_rel: ['নৈতিকতা ও মূল্যবোধ', 'ধর্মগ্রন্থের শিক্ষা', 'সহনশীলতা ও সমাজসেবা'],
+  // Class 9-10
+  cls9_ban1: ['সাহিত্যপাঠ: গল্প ও কবিতা', 'গদ্য: প্রবন্ধ ও নাটক', 'ব্যাকরণ: সমাস ও কারক'],
+  cls10_ban1: ['সাহিত্যপাঠ: গল্প ও কবিতা', 'গদ্য: প্রবন্ধ ও নাটক', 'ব্যাকরণ: সমাস ও কারক'],
+  cls9_ban2: ['রচনা, সারমর্ম ও প্রয়োগ-ভাষা', 'বানান, বাগ্ধারা ও প্রবাদ', 'নির্মিতি'],
+  cls10_ban2: ['রচনা, সারমর্ম ও প্রয়োগ-ভাষা', 'বানান, বাগ্ধারা ও প্রবাদ', 'নির্মিতি'],
   cls9_phy: ['গতি (Motion)', 'গতির পরিবর্তন ও বল', 'কাজ, শক্তি ও ক্ষমতা', 'আলোর প্রতিসরণ'],
-  cls9_chem: ['পদার্থের অবস্থা', 'পরমাণুর গঠন', 'পর্যায় সারণি ও রাসায়নিক বন্ধন', 'রাসায়নিক বিক্রিয়া'],
-  cls9_bio: ['জীবন পাঠ', 'কোষ ও কোষ বিভাজন', 'টিস্যু ও টিস্যুতন্ত্র', 'খাদ্য, পুষ্টি ও পরিপাক'],
-  cls9_math: ['সেট ও ফাংশন', 'বীজগাণিতিক রাশি', 'সূচক ও লগারিদম', 'ত্রিকোণমিতি'],
-  cls9_ict: ['তথ্য ও যোগাযোগ প্রযুক্তি: বিশ্ব ও বাংলাদেশ', 'কম্পিউটার ও কম্পিউটার ব্যবহার', 'ইন্টারনেট ও ওয়েবসাইট'],
-  cls9_eng: ['Unit 1: Personal Communication', 'Unit 2: Pastimes', 'Grammar: Tense Review'],
-  cls10_ban: ['সাহিত্য: ছোটগল্প', 'ব্যাকরণ: দ্বিরুক্তি ও যুক্তবর্ণ', 'নাটক ও প্রবন্ধ'],
   cls10_phy: ['বৈদ্যুতিক স্রোত', 'আলোর প্রতিফলন ও দর্পণ', 'চৌম্বক প্রভাব ও তড়িৎক্রম', 'আধুনিক পদার্থবিজ্ঞান ও ইলেকট্রনিক্স'],
+  cls9_chem: ['পদার্থের অবস্থা', 'পরমাণুর গঠন', 'পর্যায় সারণি ও রাসায়নিক বন্ধন', 'রাসায়নিক বিক্রিয়া'],
   cls10_chem: ['রাসায়নিক বিক্রিয়া', 'মোলের ধারণা ও রাসায়নিক গণনা', 'অ্যাসিড-ক্ষারক সমতা', 'খনিজ সম্পদ: জীবাশ্ম'],
+  cls9_bio: ['জীবন পাঠ', 'কোষ ও কোষ বিভাজন', 'টিস্যু ও টিস্যুতন্ত্র', 'খাদ্য, পুষ্টি ও পরিপাক'],
   cls10_bio: ['জীবন নিয়ন্ত্রণ', 'বংশগতি', 'জীবের পরিবেশ', 'জীবপ্রযুক্তি'],
+  cls9_math: ['সেট ও ফাংশন', 'বীজগাণিতিক রাশি', 'সূচক ও লগারিদম', 'ত্রিকোণমিতি'],
   cls10_math: ['অসীম ধারা', 'বৃত্ত', 'ত্রিকোণমিতিক অনুপাত', 'সূচক ও লগারিদম'],
+  cls9_ict: ['তথ্য ও যোগাযোগ প্রযুক্তি: বিশ্ব ও বাংলাদেশ', 'কম্পিউটার ও কম্পিউটার ব্যবহার', 'ইন্টারনেট ও ওয়েবসাইট'],
   cls10_ict: ['গ্লোবাল ভিলেজ', 'কম্পিউটার নেটওয়ার্ক ও ইন্টারনেট', 'প্রোগ্রামিংয়ের ভাষা'],
-  cls10_eng: ['Unit 1: Self-Reliance', 'Unit 2: Adolescence', 'Grammar: Voice & Narration'],
+  cls9_eng1: ['Unit 1: Personal Communication', 'Unit 2: Pastimes & Festivals', 'Poem & Literature'],
+  cls10_eng1: ['Unit 1: Personal Communication', 'Unit 2: Pastimes & Festivals', 'Poem & Literature'],
+  cls9_eng2: ['Reading Comprehension', 'Grammar: Tense, Voice & Narration', 'Writing: Paragraph & Letter'],
+  cls10_eng2: ['Reading Comprehension', 'Grammar: Tense, Voice & Narration', 'Writing: Paragraph & Letter'],
+  cls9_bgs: ['আমাদের স্বাধীনতা যুদ্ধ', 'বাংলাদেশের ভূগোল ও জনসংখ্যা', 'সংবিধান ও নাগরিকত্ব'],
+  cls10_bgs: ['আমাদের স্বাধীনতা যুদ্ধ', 'বাংলাদেশের ভূগোল ও জনসংখ্যা', 'সংবিধান ও নাগরিকত্ব'],
+  cls9_rel: ['নৈতিকতা ও মূল্যবোধ', 'ধর্মগ্রন্থের শিক্ষা', 'সহনশীলতা ও সমাজসেবা'],
+  cls10_rel: ['নৈতিকতা ও মূল্যবোধ', 'ধর্মগ্রন্থের শিক্ষা', 'সহনশীলতা ও সমাজসেবা'],
+  cls9_him: ['সেট ও ফাংশন', 'বহুপদী ও বীজগাণিতিক রাশি', 'ত্রিকোণমিতি'],
+  cls10_him: ['স্থানাঙ্ক জ্যামিতি', 'অনুক্রম ও অসীম ধারা', 'সমীকরণ ও অসমতা'],
 };
 
 const USERS = [
@@ -167,15 +199,6 @@ const FEATURED = {
       ['RAM কোন ধরনের মেমোরি?', ['স্থায়ী', 'অস্থায়ী', 'চৌম্বকীয়', 'অপটিক্যাল'], 1, 'RAM অস্থায়ী মেমোরি — বিদ্যুৎ গেলে ডেটা মুছে যায়।'],
     ],
   },
-  cls9_eng_c3: {
-    mcqs: [
-      ['He ___ to school every day.', ['go', 'goes', 'going', 'gone'], 1, 'Present simple-এ third person singular-এর সাথে "goes" বসে।'],
-      ['I ___ my homework yesterday.', ['do', 'does', 'did', 'done'], 2, 'Yesterday থাকায় past tense "did" হবে।'],
-      ['They ___ playing football now.', ['is', 'am', 'are', 'be'], 2, 'They-এর সাথে "are" বসে।'],
-      ['She will ___ the exam next week.', ['take', 'took', 'taken', 'takes'], 0, 'will-এর পর verb-এর base form বসে।'],
-      ["The past participle of 'write' is —", ['wrote', 'written', 'writing', 'writed'], 1, 'write → wrote → written।'],
-    ],
-  },
   cls10_phy_c1: {
     mcqs: [
       ['বিদ্যুৎ প্রবাহের একক কোনটি?', ['ভোল্ট', 'অ্যাম্পিয়ার', 'ওহম', 'ওয়াট'], 1, 'কুলম্ব/সেকেন্ড = অ্যাম্পিয়ার (A)।'],
@@ -237,6 +260,76 @@ const WEEKLY_EXAMS = [
   },
 ];
 
+// ---------- MCQ bank generation ----------
+
+const CONTENT = { ...BAN_ENG_CONTENT, ...SCI_CONTENT };
+
+const POOL_BN = [
+  ['1 কিলোমিটার = কত মিটার?', ['100', '1000', '10', '10000'], 1, '১ কিমি = ১০০০ মিটার।'],
+  ['পানির সংকেত কোনটি?', ['CO₂', 'H₂O', 'O₂', 'NaCl'], 1, 'পানি দুটি হাইড্রোজেন ও একটি অক্সিজেন পরমাণুর যৌগ।'],
+  ['সূর্য থেকে পৃথিবীতে প্রাপ্ত শক্তি কোনটি?', ['রাসায়নিক শক্তি', 'সৌরশক্তি', 'তাপীয় শক্তি নয়', 'শব্দশক্তি'], 1, 'সূর্যের আলো-তাপই সৌরশক্তি।'],
+  ['বাংলা বর্ণমালায় স্বরবর্ণ কয়টি?', ['১০', '১১', '৯', '১২'], 1, 'বাংলা স্বরবর্ণ ১১টি।'],
+  ['বৃত্তের ক্ষেত্রফলের সূত্র কোনটি?', ['πr²', '2πr', 'πd', '½πr'], 0, 'বৃত্তের ক্ষেত্রফল = πr²।'],
+  ['কোনটি নবায়নযোগ্য শক্তির উৎস?', ['কয়লা', 'সৌরশক্তি', 'পেট্রোল', 'প্রাকৃতিক গ্যাস'], 1, 'সৌরশক্তি ফুরিয়ে যায় না।'],
+  ['কম্পিউটারের "মস্তিষ্ক" কোনটি?', ['RAM', 'CPU', 'মনিটর', 'হার্ডডিস্ক'], 1, 'CPU সব প্রক্রিয়াকরণ করে।'],
+  ['মানবদেহে রক্ত সঞ্চালনের প্রধান অঙ্গ কোনটি?', ['হৃদপিণ্ড', 'ফুসফুস', 'কিডনি', 'যকৃত'], 0, 'হৃদপিণ্ড রক্ত পাম্প করে।'],
+  ['ত্রিভুজের তিন কোণের সমষ্টি কত?', ['90°', '180°', '270°', '360°'], 1, 'ত্রিভুজের কোণসমষ্টি ১৮০°।'],
+  ['২৬ মার্চ কোন দিবস?', ['বিজয় দিবস', 'স্বাধীনতা দিবস', 'ভাষা শহীদ দিবস', 'শিক্ষা দিবস'], 1, '২৬ মার্চ ১৯৭১ — স্বাধীনতা দিবস।'],
+];
+
+const POOL_EN = [
+  ['Water boils at ___ °C.', ['100', '50', '150', '90'], 0, 'Water boils at 100°C at normal pressure.'],
+  ['The largest planet of our solar system is —', ['Earth', 'Jupiter', 'Mars', 'Venus'], 1, 'Jupiter is the largest planet.'],
+  ['Which is a renewable energy source?', ['Coal', 'Solar energy', 'Petrol', 'Natural gas'], 1, 'Solar energy never runs out.'],
+  ['The first President of Bangladesh was —', ['Ziaur Rahman', 'Sheikh Mujibur Rahman', 'Tajuddin Ahmad', 'Sheikh Hasina'], 1, 'Bangabandhu Sheikh Mujibur Rahman was the first President.'],
+  ['1 kilogram = ? grams', ['100', '1000', '10', '10000'], 1, '1 kg = 1000 g।'],
+  ['Photosynthesis takes place in —', ['Green plants', 'Animals', 'Rocks', 'Water only'], 0, 'Green plants make food by photosynthesis.'],
+  ['The unit of force is —', ['Joule', 'Newton', 'Watt', 'Pascal'], 1, 'Force is measured in Newton (N).'],
+  ['How many vowels are in the English alphabet?', ['4', '5', '6', '21'], 1, 'a, e, i, o, u — five vowels.'],
+  ['The capital of Bangladesh is —', ['Chattogram', 'Dhaka', 'Rajshahi', 'Khulna'], 1, 'Dhaka is the capital of Bangladesh.'],
+  ['Which gas do plants absorb for photosynthesis?', ['Oxygen', 'Carbon dioxide', 'Nitrogen', 'Hydrogen'], 1, 'Plants absorb CO₂ and release O₂.'],
+];
+
+function pointsOf(cc) {
+  if (!cc?.p) return [];
+  return cc.p.split(';').map((s) => s.split('|'));
+}
+
+function genMcqs(cc, isEn) {
+  const pts = pointsOf(cc);
+  if (pts.length < 2) return [];
+  const defs = pts.map((p) => p[1]);
+  const out = [];
+  pts.forEach((p, i) => {
+    const others = defs.filter((_, j) => j !== i);
+    for (let k = 0; k < 2 && k < others.length; k++) {
+      const distractors = others.filter((_, j) => j !== k).slice(0, 3);
+      while (distractors.length < 3) distractors.push(others[(i + k + 1) % others.length]);
+      const options = [p[1], ...distractors];
+      const question = k === 0
+        ? (isEn ? `What is "${p[0]}"?` : `"${p[0]}" কাকে বলে / কী?`)
+        : (isEn ? `Which statement correctly describes "${p[0]}"?` : `"${p[0]}" সম্পর্কে সঠিক বক্তব্য কোনটি?`);
+      out.push([question, options, 0, p[1]]);
+    }
+  });
+  return out;
+}
+
+function buildBank(id, cc, feat, isEn) {
+  const hand = [...(feat.mcqs ?? []), ...(cc?.m ?? [])];
+  const gen = genMcqs(cc, isEn);
+  const pool = (isEn ? POOL_EN : POOL_BN).slice();
+  const all = [...hand, ...gen, ...pool];
+  return all.slice(0, 25);
+}
+
+function contentFor(id, code, clsNum) {
+  if (CONTENT[id]) return CONTENT[id];
+  const sharedKey = { ban1: 'ban1_678', ban2: 'ban2_678', eng1: 'eng1_678', eng2: 'eng2_678', bgs: 'bgs', rel: 'rel' }[code];
+  if (sharedKey) return CH678[sharedKey] ?? null;
+  return CH678[`${code}${clsNum}`] ?? null;
+}
+
 const daysAgo = (n) => new Date(Date.now() - n * 86400000).toISOString();
 
 export function seedIfEmpty() {
@@ -278,22 +371,26 @@ export function seedIfEmpty() {
     const mcqId = () => `mcq_seed_${(++mcqN).toString(36)}`;
 
     for (const clsId of Object.keys(CLASS_SUBJECTS)) {
+      const clsNum = clsId.replace('cls', '');
       for (const code of CLASS_SUBJECTS[clsId]) {
         const subjectId = `${clsId}_${code}`;
         const names = CHAPTERS[subjectId] ?? [];
+        const isEn = code.startsWith('eng');
         names.forEach((name, i) => {
           const id = `${subjectId}_c${i + 1}`;
           const feat = FEATURED[id] ?? {};
-          const questions = feat.mcqs ?? [];
+          const cc = contentFor(id, code, clsNum);
+          const bank = buildBank(id, cc, feat, isEn);
+          const practice = feat.practice ?? cc?.q ?? [];
           const isMotion = id === 'cls9_phy_c1';
 
-          insChapter.run(id, subjectId, name, i + 1, `${name} — MCQ Test`, questions.length);
+          insChapter.run(id, subjectId, name, i + 1, `${name} — MCQ Test`, bank.length);
 
           insLec.run(
             `lec_seed_${++lecN}`, id,
             isMotion ? 'গতি — পূর্ণ ক্লাস' : `${name} — ক্লাস ভিডিও`,
             DEMO_VIDEO,
-            isMotion ? 'স্কুল ক্লাসরুমে শিক্ষক কর্তৃক গতি অধ্যায়ের বিস্তারিত আলোচনা।' : `${name} অধ্যায়ের ক্লাস ভিডিও।`
+            cc?.d ?? `${name} অধ্যায়ের ক্লাস ভিডিও।`
           );
           if (isMotion) {
             insLec.run(`lec_seed_${++lecN}`, id, 'গতির সূত্র — সংক্ষিপ্ত আলোচনা', DEMO_VIDEO, 'গতির তিনটি সূত্র ও তাদের প্রয়োগ।');
@@ -301,6 +398,12 @@ export function seedIfEmpty() {
 
           if (feat.notes) {
             feat.notes.forEach(([title, content]) => insNote.run(`note_seed_${++noteN}`, id, title, content));
+          } else if (cc?.p) {
+            const pts = pointsOf(cc);
+            const body = pts.map((p) => `• ${p[0]}: ${p[1]}`).join('\n');
+            insNote.run(`note_seed_${++noteN}`, id,
+              isEn ? `${name} — Key Points` : `${name} — মূল ধারণা`,
+              `${cc.d}\n\n${body}`);
           } else {
             insNote.run(
               `note_seed_${++noteN}`, id, `${name} — সংক্ষিপ্ত নোট`,
@@ -308,8 +411,8 @@ export function seedIfEmpty() {
             );
           }
 
-          (feat.practice ?? []).forEach(([question, answer]) => insPq.run(`pq_seed_${++pqN}`, id, question, answer));
-          questions.forEach(([question, options, correctIndex, explanation]) =>
+          practice.forEach(([question, answer]) => insPq.run(`pq_seed_${++pqN}`, id, question, answer));
+          bank.forEach(([question, options, correctIndex, explanation]) =>
             insMcq.run(mcqId(), id, question, JSON.stringify(options), correctIndex, explanation)
           );
         });
@@ -343,16 +446,16 @@ export function seedIfEmpty() {
     mk('usr_s3', 'weekly', 'week2', 'Weekly Exam — Week 02', 8, 6, 2);
     mk('usr_s4', 'weekly', 'week2', 'Weekly Exam — Week 02', 8, 4, 1);
     mk('usr_s5', 'weekly', 'week2', 'Weekly Exam — Week 02', 8, 3, 1);
-    mk('usr_s1', 'chapter', 'cls9_phy_c1', 'গতি (Motion) — MCQ Test', 20, 14, 3);
-    mk('usr_s2', 'chapter', 'cls9_phy_c1', 'গতি (Motion) — MCQ Test', 20, 16, 3);
-    mk('usr_s3', 'chapter', 'cls9_phy_c1', 'গতি (Motion) — MCQ Test', 20, 12, 2);
-    mk('usr_s2', 'chapter', 'cls9_chem_c2', 'পরমাণুর গঠন — MCQ Test', 5, 5, 2);
+    mk('usr_s1', 'chapter', 'cls9_phy_c1', 'গতি (Motion) — MCQ Test', 25, 18, 3);
+    mk('usr_s2', 'chapter', 'cls9_phy_c1', 'গতি (Motion) — MCQ Test', 25, 20, 3);
+    mk('usr_s3', 'chapter', 'cls9_phy_c1', 'গতি (Motion) — MCQ Test', 25, 14, 2);
+    mk('usr_s2', 'chapter', 'cls9_chem_c2', 'পরমাণুর গঠন — MCQ Test', 25, 22, 2);
 
     // Notices
     const insNotice = db.prepare('INSERT INTO notices (id, title, body, date) VALUES (?, ?, ?, ?)');
     insNotice.run('ntc1', 'সাপ্তাহিক পরীক্ষা — Week 01 শুরু হয়েছে', 'পদার্থবিজ্ঞান ও গণিত বিষয়ের উপর এই সপ্তাহের সাপ্তাহিক MCQ পরীক্ষা শুরু হয়েছে। সকল শিক্ষার্থী নির্দিষ্ট সময়ের মধ্যে পরীক্ষা দেওয়ার জন্য উৎসাহিত করা হচ্ছে। পরীক্ষার ফলাফল ও লিডারবোর্ড সাথে সাথেই প্রকাশিত হবে।', daysAgo(1));
     insNotice.run('ntc2', 'Science Fair ২০২৬ — আমাদের ICT প্রজেক্ট', 'আমাদের স্কুলের Science Fair-এ "E-Learning Bangladesh" প্রজেক্ট প্রদর্শনী হবে। এটি আমাদের স্কুলের শিক্ষার্থীদের নিয়মিত Revision ও Practice-এর জন্য তৈরি একটি Practice-Based E-Learning Platform।', daysAgo(3));
-    insNotice.run('ntc3', 'পদার্থবিজ্ঞান "গতি" অধ্যায়ের MCQ Test প্রকাশিত', 'নবম শ্রেণির পদার্থবিজ্ঞানের "গতি (Motion)" অধ্যায়ের ২০টি প্রশ্নের MCQ Test প্রকাশিত হয়েছে। প্রতিটি প্রশ্নের সঠিক উত্তর ও ব্যাখ্যা পরীক্ষা শেষে দেখা যাবে।', daysAgo(5));
+    insNotice.run('ntc3', 'প্রতিটি অধ্যায়ে ২৫টি MCQ যোগ হয়েছে', 'Class 6-10-এর সব বিষয়ের প্রতিটি অধ্যায়ে এখন ২৫টি করে MCQ প্রশ্ন, নোট ও প্র্যাকটিস প্রশ্ন যোগ করা হয়েছে। শিক্ষার্থীরা এখন যেকোনো অধ্যায়ে MCQ Test দিতে পারবে।', daysAgo(5));
   });
 
   tx();

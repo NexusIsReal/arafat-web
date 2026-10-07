@@ -70,10 +70,40 @@ function getState() {
 
   const notices = db.prepare('SELECT * FROM notices ORDER BY date DESC').all().map((n) => ({ id: n.id, title: n.title, body: n.body, date: n.date }));
 
-  return { school: SCHOOL, users, classes, subjects, chapters, weeklyExams, results, notices };
+  const comments = db.prepare('SELECT * FROM comments ORDER BY date ASC').all().map((c) => ({
+    id: c.id, lectureId: c.lecture_id, userId: c.user_id, body: c.body, date: c.date,
+  }));
+
+  return { school: SCHOOL, users, classes, subjects, chapters, weeklyExams, results, notices, comments };
 }
 
 app.get('/api/state', (req, res) => res.json(getState()));
+
+// ---------- Comments ----------
+
+app.post('/api/lectures/:id/comments', (req, res) => {
+  const { userId, body } = req.body ?? {};
+  const text = String(body ?? '').trim();
+  if (!userId || !text) return res.status(400).json({ error: 'userId ও মন্তব্য প্রয়োজন' });
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
+  const lec = db.prepare('SELECT * FROM lectures WHERE id = ?').get(req.params.id);
+  if (!user) return res.status(404).json({ error: 'User not found' });
+  if (!lec) return res.status(404).json({ error: 'Lecture not found' });
+  const id = uid('cmt');
+  db.prepare('INSERT INTO comments (id, lecture_id, user_id, body, date) VALUES (?, ?, ?, ?, ?)')
+    .run(id, req.params.id, userId, text.slice(0, 1000), new Date().toISOString());
+  res.json({ ok: true, commentId: id, state: getState() });
+});
+
+app.delete('/api/comments/:id', (req, res) => {
+  const { userId } = req.body ?? {};
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId ?? '');
+  if (!user || (user.role !== 'teacher' && user.role !== 'admin')) {
+    return res.status(403).json({ error: 'শুধু শিক্ষক/অ্যাডমিন মন্তব্য মুছতে পারবেন' });
+  }
+  db.prepare('DELETE FROM comments WHERE id = ?').run(req.params.id);
+  res.json({ ok: true, state: getState() });
+});
 
 // ---------- Auth ----------
 

@@ -7,7 +7,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const dataDir = path.join(__dirname, '..', 'data');
 if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 
-const DB_PATH = path.join(dataDir, 'elearning.db');
+// Allow a custom DB file (used by tests); defaults to data/elearning.db
+const DB_PATH = process.env.ELB_DB_FILE
+  ? path.resolve(process.env.ELB_DB_FILE)
+  : path.join(dataDir, 'elearning.db');
 
 export const db = new Database(DB_PATH);
 db.pragma('journal_mode = WAL');
@@ -106,6 +109,14 @@ CREATE TABLE IF NOT EXISTS results (
 CREATE TABLE IF NOT EXISTS notices (
   id TEXT PRIMARY KEY,
   title TEXT NOT NULL,
+  body TEXT NOT NULL,
+  date TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS comments (
+  id TEXT PRIMARY KEY,
+  lecture_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
   body TEXT NOT NULL,
   date TEXT NOT NULL
 );

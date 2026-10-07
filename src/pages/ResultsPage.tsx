@@ -1,13 +1,25 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { Card, SectionTitle, Badge, EmptyState, fmtDate } from '../components/ui';
 
+type Filter = 'all' | 'weekly' | 'chapter';
+
 export default function ResultsPage() {
   const { db, user } = useApp();
+  const [filter, setFilter] = useState<Filter>('all');
   if (!user) return null;
   const results = db.results
     .filter((r) => r.userId === user.id)
+    .filter((r) => filter === 'all' || r.type === filter)
     .sort((a, b) => b.date.localeCompare(a.date));
+
+  const all = db.results.filter((r) => r.userId === user.id);
+  const tabs: { id: Filter; label: string; count: number }[] = [
+    { id: 'all', label: 'All', count: all.length },
+    { id: 'weekly', label: 'Weekly Exams', count: all.filter((r) => r.type === 'weekly').length },
+    { id: 'chapter', label: 'Chapter Tests', count: all.filter((r) => r.type === 'chapter').length },
+  ];
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">

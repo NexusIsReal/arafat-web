@@ -37,6 +37,20 @@ export function overallAverage(db: DB, user: User, subjects: Subject[]): number 
   return Math.round(list.reduce((acc, s) => acc + subjectProgress(db, user, s), 0) / list.length);
 }
 
+export function weakChapters(db: DB, user: User, subjectIds: string[], threshold = 60): Chapter[] {
+  return db.chapters
+    .filter((c) => {
+      if (!subjectIds.includes(c.subjectId) || c.mcq.questions.length === 0) return false;
+      const best = chapterBest(db, user.id, c.id);
+      return (best?.percentage ?? 0) < threshold;
+    })
+    .sort((a, b) => {
+      const pa = chapterBest(db, user.id, a.id)?.percentage ?? 0;
+      const pb = chapterBest(db, user.id, b.id)?.percentage ?? 0;
+      return pa - pb;
+    });
+}
+
 export interface LeaderRow {
   user: User;
   result: ExamResult;

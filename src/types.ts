@@ -119,6 +119,14 @@ export interface Notice {
   date: string;
 }
 
+export interface Comment {
+  id: string;
+  lectureId: string;
+  userId: string;
+  body: string;
+  date: string;
+}
+
 export interface DB {
   school: SchoolInfo;
   users: User[];
@@ -128,4 +136,5 @@ export interface DB {
   weeklyExams: WeeklyExam[];
   results: ExamResult[];
   notices: Notice[];
+  comments: Comment[];
 }

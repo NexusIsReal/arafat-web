@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { Card, SectionTitle, Stat, ProgressBar, Badge, fmtDate } from '../components/ui';
-import { subjectProgress, overallAverage, completedChapters } from '../lib/progress';
+import { Card, SectionTitle, Stat, ProgressBar, Badge, fmtDate, btnPrimary } from '../components/ui';
+import { subjectProgress, overallAverage, completedChapters, weakChapters } from '../lib/progress';
+import { getLastLecture } from './ChapterPage';
 
 export default function StudentDashboard() {
   const { db, user } = useApp();
@@ -13,7 +14,13 @@ export default function StudentDashboard() {
   const myResults = db.results.filter((r) => r.userId === user.id).sort((a, b) => b.date.localeCompare(a.date));
   const completed = completedChapters(db, user, subjectIds);
   const avg = overallAverage(db, user, subjects);
-  const nextExam = [...db.weeklyExams].sort((a, b) => a.weekNo - b.weekNo).find((e) => e.questions.length > 0);
+  const weak = weakChapters(db, user, subjectIds);
+  const upcomingExam = [...db.weeklyExams]
+    .sort((a, b) => a.weekNo - b.weekNo)
+    .find((e) => e.questions.length > 0 && !myResults.some((r) => r.type === 'weekly' && r.refId === e.id));
+  const lastLec = getLastLecture();
+  const lastChapter = lastLec ? db.chapters.find((c) => c.id === lastLec.chapterId) : null;
+  const lastSubject = lastChapter ? db.subjects.find((s) => s.id === lastChapter.subjectId) : null;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
@@ -24,18 +31,113 @@ export default function StudentDashboard() {
             {cls ? `${cls.name} · ${cls.nameBn}` : '—'} · Roll: {user.roll ?? '—'}
           </p>
         </div>
-        {nextExam && (
-          <Link to={`/quiz/weekly/${nextExam.id}`} className="rounded-xl bg-gradient-to-r from-amber-500 to-orange-400 px-5 py-3 text-sm font-bold text-white shadow transition hover:opacity-90">
-            {nextExam.weekNo > 0 && `Weekly Exam — Week ${String(nextExam.weekNo).padStart(2, '0')} দিতে চাও? Start →`}
+      </div>
+
+      {/* Continue Learning + Upcoming Exam */}
+      <div className="mb-8 grid gap-4 lg:grid-cols-2">
+        {lastChapter && lastSubject ? (
+          <Link to={`/chapter/${lastChapter.id}`}>
+            <Card className="flex items-center gap-4 border-indigo-200 bg-gradient-to-r from-indigo-50 to-white p-5 transition hover:shadow-md">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-xl text-white">▶</div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-bold uppercase tracking-wider text-indigo-500">চলমান Lecture — Continue Learning</p>
+                <p className="mt-0.5 truncate font-bold text-slate-900">{lastSubject.name} · Ch {lastChapter.order}: {lastChapter.name}</p>
+                <p className="text-xs text-slate-500">শেষ দেখা লেকচার থেকে আবার শুরু করো</p>
+              </div>
+              <span className="shrink-0 text-sm font-bold text-indigo-600">→</span>
+            </Card>
           </Link>
+        ) : (
+          <Card className="flex items-center gap-4 p-5">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-200 text-xl text-slate-500">▶</div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-400">চলমান Lecture</p>
+              <p className="mt-0.5 font-bold text-slate-700">কোনো লেকচার দেখা শুরু করোনি</p>
+              <p className="text-xs text-slate-500">My Subjects থেকে একটি Chapter খুলো</p>
+            </div>
+          </Card>
+        )}
+
+        {upcomingExam ? (
+          <Link to={`/quiz/weekly/${upcomingExam.id}`}>
+            <Card className="flex items-center gap-4 border-amber-200 bg-gradient-to-r from-amber-50 to-white p-5 transition hover:shadow-md">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-500 text-xl text-white">⏰</div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-bold uppercase tracking-wider text-amber-500">Upcoming Exam</p>
+                <p className="mt-0.5 truncate font-bold text-slate-900">Weekly Exam — Week {String(upcomingExam.weekNo).padStart(2, '0')}</p>
+                <p className="text-xs text-slate-500">{upcomingExam.questions.length} প্রশ্ন · {upcomingExam.durationMin} মিনিট — তুমি এখনো অংশ নাও!</p>
+              </div>
+              <span className="shrink-0 text-sm font-bold text-amber-600">Start →</span>
+            </Card>
+          </Link>
+        ) : (
+          <Card className="flex items-center gap-4 p-5">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-xl">✓</div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-emerald-500">Upcoming Exam</p>
+              <p className="mt-0.5 font-bold text-slate-700">এই সপ্তাহের সব পরীক্ষা শেষ</p>
+              <p className="text-xs text-slate-500">নতুন Weekly Exam-এর জন্য অপেক্ষা করো</p>
+            </div>
+          </Card>
         )}
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Stat label="My Subjects" value={subjects.length} />
         <Stat label="Chapters Completed" value={completed.length} color="text-emerald-600" />
-        <Stat label="Tests Taken" value={myResults.length} color="text-amber-600" />
-        <Stat label="Overall Average" value={`${avg}%`} color={avg >= 60 ? 'text-indigo-600' : 'text-rose-500'} />
+        <Stat label="Exams Taken" value={myResults.length} color="text-amber-600" />
+        <Stat label="Overall Score" value={`${avg}%`} color={avg >= 60 ? 'text-indigo-600' : 'text-rose-500'} />
+      </div>
+
+      {/* Performance Analysis */}
+      <div className="mt-10">
+        <SectionTitle title="Performance Analysis" sub="তোমার পড়াশোনার অবস্থা একনজরে" />
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Card className="p-6">
+            <p className="mb-4 font-bold text-slate-800">Subject-wise Score</p>
+            <div className="space-y-3">
+              {subjects.map((s) => {
+                const p = subjectProgress(db, user, s);
+                return (
+                  <div key={s.id}>
+                    <div className="mb-1 flex items-center justify-between text-sm">
+                      <span className="font-medium text-slate-600">{s.name}</span>
+                      <span className={`font-bold ${p >= 80 ? 'text-emerald-600' : p >= 40 ? 'text-indigo-600' : 'text-rose-500'}`}>{p}%</span>
+                    </div>
+                    <ProgressBar value={p} />
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <p className="mb-4 font-bold text-slate-800">
+              Weak Chapters <span className="ml-2 text-xs font-medium text-rose-500">সেরা স্কোর ৬০%-এর নিচে</span>
+            </p>
+            {weak.length === 0 ? (
+              <p className="text-sm text-slate-500">সব অধ্যায়ে ভালো করেছ! 🎉</p>
+            ) : (
+              <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
+                {weak.slice(0, 10).map((c) => {
+                  const sub = db.subjects.find((s) => s.id === c.subjectId);
+                  const best = myResults.find((r) => r.type === 'chapter' && r.refId === c.id);
+                  return (
+                    <div key={c.id} className="flex items-center justify-between gap-3 rounded-xl bg-rose-50 p-3 ring-1 ring-rose-100">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-slate-800">{sub?.name} · Ch {c.order}: {c.name}</p>
+                        <p className="text-xs text-rose-500">সেরা স্কোর: {best ? `${best.percentage}%` : 'Test দাওনি'}</p>
+                      </div>
+                      <Link to={`/chapter/${c.id}`} className="shrink-0 rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-rose-700">
+                        Practice করো →
+                      </Link>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Card>
+        </div>
       </div>
 
       <div className="mt-10">
