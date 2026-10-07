@@ -24,6 +24,19 @@ export default function ResultsPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
       <SectionTitle title="My Results" sub="সকল পরীক্ষার ফলাফল" action={<Link to="/dashboard" className="text-sm font-semibold text-indigo-600 hover:underline">← Dashboard</Link>} />
+
+      <div className="mb-4 flex flex-wrap gap-2">
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setFilter(t.id)}
+            className={`rounded-lg px-4 py-2 text-sm font-bold transition ${filter === t.id ? 'bg-indigo-600 text-white shadow' : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50'}`}
+          >
+            {t.label} ({t.count})
+          </button>
+        ))}
+      </div>
+
       {results.length === 0 ? (
         <EmptyState title="এখনো কোনো পরীক্ষা দাওনি" sub="Chapter MCQ Test বা Weekly Exam দিয়ে শুরু করো!">
           <Link to="/weekly" className="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white">Weekly Exam →</Link>

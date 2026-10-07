@@ -21,17 +21,26 @@ async function api(path, method = 'GET', body) {
   ok('GET /api/state 200', st.status === 200);
   ok('school info (St. Joseph)', db.school?.nameEn === 'St. Joseph School & College' && db.school?.facebook === 'https://www.facebook.com/sjscb');
   ok('classes = 5', db.classes.length === 5);
-  ok('subjects = 29 (Bangla added)', db.subjects.length === 29 && db.subjects.some(s => s.code === 'BAN'));
-  ok('chapters = 95', db.chapters.length === 95);
+  ok('subjects = 51 (papers split + BGS/Rel/HIM)', db.subjects.length === 51);
+  ok('new subjects present (BAN1/2, ENG1/2, BGS, REL, HIM)', ['BAN1', 'BAN2', 'ENG1', 'ENG2', 'BGS', 'REL', 'HIM'].every(c => db.subjects.some(s => s.code === c)));
+  ok('Higher Math only in class 9-10', db.subjects.every(s => s.code !== 'HIM' || ['cls9', 'cls10'].includes(s.classId)));
+  ok('chapters = 161', db.chapters.length === 161);
   ok('users (3 roles, 6 students)', db.users.some(u => u.role === 'admin') && db.users.some(u => u.role === 'teacher') && db.users.filter(u => u.role === 'student').length === 6);
   ok('student roster (Arafat..Jerin)', ['Arafat Rahman', 'Kabbo Mahmud', 'Saif Khan', 'Fauzia Dina', 'Koyel Saha', 'Jerin Sultana'].every(n => db.users.some(u => u.name === n)));
+  ok('Benedict Gomes is প্রধান শিক্ষক', db.users.find(u => u.name === 'Benedict Gomes')?.designation === 'প্রধান শিক্ষক');
+
+  const everyCh = db.chapters;
+  ok('every chapter has ≥25 MCQ', everyCh.every(c => c.mcq.questions.length >= 25));
+  ok('every chapter has ≥1 note + ≥1 practice', everyCh.every(c => c.notes.length >= 1 && c.practice.length >= 1));
+  ok('every chapter has ≥1 lecture + description', everyCh.every(c => c.lectures.length >= 1 && !!c.lectures[0].description));
+  ok('MCQ test duration = Q count × 1 min', everyCh.every(c => c.mcq.durationMin === c.mcq.questions.length));
 
   const motion = db.chapters.find(c => c.id === 'cls9_phy_c1');
   ok('Motion chapter lectures = 2', motion.lectures.length === 2);
   ok('Motion video URL (mock YouTube)', motion.lectures[0].videoUrl.startsWith('https://www.youtube.com/embed/'));
   ok('Motion notes = 2', motion.notes.length === 2);
   ok('Motion practice = 10', motion.practice.length === 10);
-  ok('Motion MCQs = 20', motion.mcq.questions.length === 20);
+  ok('Motion MCQs = 25', motion.mcq.questions.length === 25);
   ok('MCQ options + explanation', motion.mcq.questions[0].options.length === 4 && !!motion.mcq.questions[0].explanation);
   ok('weekly exams = 3', db.weeklyExams.length === 3);
   ok('seed results present', db.results.length >= 15);
@@ -55,12 +64,12 @@ async function api(path, method = 'GET', body) {
   }));
   const sub = await api('/api/results', 'POST', {
     userId: 'usr_s1', type: 'chapter', refId: 'cls9_phy_c1',
-    title: motion.mcq.title, total: 20, obtained: 20, answers,
+    title: motion.mcq.title, total: 25, obtained: 25, answers,
   });
   ok('POST /api/results ok', sub.status === 200 && !!sub.data.resultId);
   ok('result in state', sub.data.state.results.length === before + 1);
   const myRes = sub.data.state.results.find(r => r.id === sub.data.resultId);
-  ok('result fields (20/20, 100%)', myRes.obtained === 20 && myRes.percentage === 100 && myRes.answers.length === 20);
+  ok('result fields (25/25, 100%)', myRes.obtained === 25 && myRes.percentage === 100 && myRes.answers.length === 25);
 
   console.log('== 4. Teacher: add lecture / notes / practice / MCQ ==');
   const L = await api('/api/chapters/cls9_phy_c1/lectures', 'POST', { title: 'API Test Lecture', videoUrl: 'https://www.youtube.com/embed/abc123' });
@@ -71,9 +80,9 @@ async function api(path, method = 'GET', body) {
   ok('add practice', P.status === 200 && P.data.state.chapters.find(c => c.id === 'cls9_phy_c1').practice.some(p => p.question === 'API Test Q?'));
   const M = await api('/api/chapters/cls9_phy_c1/mcq', 'POST', { question: 'API Test MCQ?', options: ['a', 'b', 'c', 'd'], correctIndex: 2, explanation: 'because' });
   const addedMcq = M.data.state.chapters.find(c => c.id === 'cls9_phy_c1').mcq.questions.find(q => q.question === 'API Test MCQ?');
-  ok('add MCQ (21 now)', M.status === 200 && M.data.state.chapters.find(c => c.id === 'cls9_phy_c1').mcq.questions.length === 21);
+  ok('add MCQ (26 now)', M.status === 200 && M.data.state.chapters.find(c => c.id === 'cls9_phy_c1').mcq.questions.length === 26);
   const D = await api(`/api/mcq/${addedMcq.id}`, 'DELETE');
-  ok('delete MCQ (back to 20)', D.status === 200 && D.data.state.chapters.find(c => c.id === 'cls9_phy_c1').mcq.questions.length === 20);
+  ok('delete MCQ (back to 25)', D.status === 200 && D.data.state.chapters.find(c => c.id === 'cls9_phy_c1').mcq.questions.length === 25);
   // cleanup: remove test-content so repeated runs stay consistent
   const afterAdd = D.data.state.chapters.find(c => c.id === 'cls9_phy_c1');
   for (const l of afterAdd.lectures.filter(x => x.title === 'API Test Lecture')) await api(`/api/lectures/${l.id}`, 'DELETE');
@@ -122,7 +131,7 @@ async function api(path, method = 'GET', body) {
   const dr = await api(`/api/results/${sub.data.resultId}`, 'DELETE');
   ok('delete result', dr.status === 200 && !dr.data.state.results.some(r => r.id === sub.data.resultId));
 
-  const NC = await api('/api/subjects/cls9_ban/chapters', 'POST', { name: 'API Chapter' });
+  const NC = await api('/api/subjects/cls9_ban1/chapters', 'POST', { name: 'API Chapter' });
   const ncId = NC.data.chapterId;
   const nc = NC.data.state.chapters.find(c => c.id === ncId);
   ok('add chapter (order=4, default note)', NC.status === 200 && nc.order === 4 && nc.notes.length === 1);
@@ -142,7 +151,21 @@ async function api(path, method = 'GET', body) {
   const DC = await api(`/api/chapters/${ncId}`, 'DELETE');
   ok('delete chapter (cascade, back to 3)', DC.status === 200 && !DC.data.state.chapters.some(c => c.id === ncId));
 
-  console.log('== 9. Persistence: file-based DB ==');
+  console.log('== 9. Comments (lecture discussion) ==');
+  const lecId = db.chapters.find(c => c.id === 'cls9_phy_c1').lectures[0].id;
+  const noAuth = await api(`/api/lectures/${lecId}/comments`, 'POST', { userId: '', body: 'x' });
+  ok('comment without user rejected (400)', noAuth.status === 400);
+  const badLec = await api('/api/lectures/nope/comments', 'POST', { userId: 'usr_s1', body: 'x' });
+  ok('comment on missing lecture (404)', badLec.status === 404);
+  const C = await api(`/api/lectures/${lecId}/comments`, 'POST', { userId: 'usr_s1', body: 'API টেস্ট মন্তব্য' });
+  ok('student adds comment', C.status === 200 && C.data.state.comments.some(c => c.body === 'API টেস্ট মন্তব্য'));
+  const cmtId = C.data.commentId;
+  const delByStudent = await api(`/api/comments/${cmtId}`, 'DELETE', { userId: 'usr_s1' });
+  ok('student cannot delete comment (403)', delByStudent.status === 403);
+  const delByTeacher = await api(`/api/comments/${cmtId}`, 'DELETE', { userId: 'usr_t1' });
+  ok('teacher deletes comment', delByTeacher.status === 200 && !delByTeacher.data.state.comments.some(c => c.id === cmtId));
+
+  console.log('== 10. Persistence: file-based DB ==');
   ok('results count consistent after deletes', (await api('/api/state')).data.results.length >= 15);
 
   console.log(`\nRESULT: ${pass} passed, ${fail} failed`);
