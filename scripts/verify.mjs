@@ -20,7 +20,7 @@ async function api(path, method = 'GET', body) {
   const db = st.data;
   ok('GET /api/state 200', st.status === 200);
   ok('school info (St. Josephite)', db.school?.nameEn === 'St. Josephite School & College' && db.school?.facebook === 'https://www.facebook.com/sjscb');
-  ok('school about + tagline present', !!db.school?.about && db.school?.tagline === 'Empowering Minds, Enlightening Futures');
+  ok('school about + tagline present', !!db.school?.about && db.school?.tagline === 'Empowering Knowledge, Building Futures');
   ok('classes = 5', db.classes.length === 5);
   ok('subjects = 51 (papers split + BGS/Rel/HIM)', db.subjects.length === 51);
   ok('new subjects present (BAN1/2, ENG1/2, BGS, REL, HIM)', ['BAN1', 'BAN2', 'ENG1', 'ENG2', 'BGS', 'REL', 'HIM'].every(c => db.subjects.some(s => s.code === c)));

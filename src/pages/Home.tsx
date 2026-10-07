@@ -175,7 +175,7 @@ export default function Home() {
           <SectionTitle title="About Our School" sub={db.school.nameEn} />
           <Card className="p-6 sm:p-8">
             <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
-              <img src="/logo.svg" alt="Josephite Learning" className="h-20 w-20 shrink-0" />
+              <img src="/logo.png" alt="Josephite Learning" className="h-24 w-24 shrink-0 rounded-2xl object-cover shadow" />
               <div className="min-w-0">
                 <p className="leading-relaxed text-slate-600">
                   {db.school.about ?? `${db.school.name} একটি ঐতিহ্যবাহী শিক্ষাপ্রতিষ্ঠান।`}

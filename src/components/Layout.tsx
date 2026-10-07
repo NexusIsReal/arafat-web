@@ -30,7 +30,7 @@ export default function Layout() {
       <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <Link to="/" className="flex items-center gap-3" onClick={() => setOpen(false)}>
-            <img src="/logo.svg" alt="Josephite Learning logo" className="h-10 w-10 shrink-0" />
+            <img src="/logo.png" alt="Josephite Learning logo" className="h-10 w-10 shrink-0 rounded-lg object-cover" />
             <div className="leading-tight">
               <p className="text-sm font-extrabold text-slate-900 sm:text-base">Josephite Learning</p>
               <p className="text-[11px] text-slate-500">{db.school.name}</p>
@@ -106,7 +106,7 @@ export default function Layout() {
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-3">
           <div>
             <div className="flex items-center gap-3">
-              <img src="/logo.svg" alt="" className="h-10 w-10 shrink-0" />
+              <img src="/logo.png" alt="" className="h-12 w-12 shrink-0 rounded-lg object-cover" />
               <div>
                 <p className="text-lg font-extrabold text-white">Josephite Learning</p>
                 <p className="text-sm">{db.school.name}</p>
