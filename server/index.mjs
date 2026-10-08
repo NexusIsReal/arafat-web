@@ -16,15 +16,15 @@ console.log('[db] Using SQLite database:', DB_FILE);
 const uid = (p) => `${p}_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
 
 const SCHOOL = {
-  name: 'সেন্ট জোসেফাইট স্কুল এন্ড কলেজ',
-  nameEn: 'St. Josephite School & College',
+  name: 'সেন্ট যোসেফস স্কুল এন্ড কলেজ',
+  nameEn: "St. Joseph's School & College",
   address: 'বনপাড়া, বড়াইগ্রাম, নাটোর, রাজশাহী, বাংলাদেশ',
   phone: '+880 1XXX-XXXXXX',
   email: 'stjosephbon123915@gmail.com',
   eiin: '123915',
   facebook: 'https://www.facebook.com/sjscb',
   tagline: 'Empowering Knowledge, Building Futures',
-  about: 'সেন্ট জোসেফাইট স্কুল এন্ড কলেজ, বনপাড়া, নাটোর একটি ঐতিহ্যবাহী শিক্ষাপ্রতিষ্ঠান। আমাদের ক্যাম্পাস শান্ত ও সবুজে ঘেরা — শিক্ষার্থীদের জন্য একটি সহায়ক শিক্ষা পরিবেশ তৈরি করেছে। প্রতিষ্ঠানের অভিজ্ঞ ও নিবেদিতপ্রাণ শিক্ষকমণ্ডলী শিক্ষার্থীদের মেধা বিকাশে নিরলসভাবে কাজ করে যাচ্ছেন। আমাদের স্কুলে মূল্যবোধ, নৈতিকতা ও সামাজিক দায়িত্ববোধের প্রতি অঙ্গীকার রয়েছে — পাঠ্যবইয়ের পাশাপাশি নৈতিক শিক্ষার মাধ্যমে আমরা শিক্ষার্থীদের গড়ে তুলি। Josephite Learning প্লাটফর্মটি ডিজিটাল শিক্ষা পদ্ধতির মাধ্যমে এই লক্ষ্যেই কাজ করে। শিক্ষার্থীরা নিয়মিত পাঠদানের পাশাপাশি নোট, প্র্যাকটিস, কুইজ এবং সাপ্তাহিক পরীক্ষার মাধ্যমে নিজেদের প্রস্তুতি যাচাই করতে পারে। এই প্লাটফর্মটি শিক্ষার্থীদের সুবিধার্থে প্রণয়ন করা হয়েছে — প্রতিষ্ঠানের শিক্ষার্থীদের মেধা বিকাশের চৌকস হাতিয়ার হিসেবে Josephite Learning কাজ করবে।',
+  about: 'সেন্ট যোসেফস স্কুল এন্ড কলেজ, বনপাড়া, নাটোর একটি ঐতিহ্যবাহী শিক্ষাপ্রতিষ্ঠান। আমাদের ক্যাম্পাস শান্ত ও সবুজে ঘেরা — শিক্ষার্থীদের জন্য একটি সহায়ক শিক্ষা পরিবেশ তৈরি করেছে। প্রতিষ্ঠানের অভিজ্ঞ ও নিবেদিতপ্রাণ শিক্ষকমণ্ডলী শিক্ষার্থীদের মেধা বিকাশে নিরলসভাবে কাজ করে যাচ্ছেন। আমাদের স্কুলে মূল্যবোধ, নৈতিকতা ও সামাজিক দায়িত্ববোধের প্রতি অঙ্গীকার রয়েছে — পাঠ্যবইয়ের পাশাপাশি নৈতিক শিক্ষার মাধ্যমে আমরা শিক্ষার্থীদের গড়ে তুলি। Josephite Learning প্লাটফর্মটি ডিজিটাল শিক্ষা পদ্ধতির মাধ্যমে এই লক্ষ্যেই কাজ করে। শিক্ষার্থীরা নিয়মিত পাঠদানের পাশাপাশি নোট, প্র্যাকটিস, কুইজ এবং সাপ্তাহিক পরীক্ষার মাধ্যমে নিজেদের প্রস্তুতি যাচাই করতে পারে। এই প্লাটফর্মটি শিক্ষার্থীদের সুবিধার্থে প্রণয়ন করা হয়েছে — প্রতিষ্ঠানের শিক্ষার্থীদের মেধা বিকাশের চৌকস হাতিয়ার হিসেবে Josephite Learning কাজ করবে।',
 };
 
 // ---------- State snapshot ----------
@@ -354,6 +354,16 @@ app.post('/api/subjects/:id/chapters', (req, res) => {
   db.prepare('INSERT INTO notes (id, chapter_id, title, content) VALUES (?, ?, ?, ?)')
     .run(uid('note'), id, `${name.trim()} — সংক্ষিপ্ত নোট`, `এই অধ্যায়ের মূল বিষয়বস্তু:\n• ${name.trim()}-এর মৌলিক ধারণা ও সংজ্ঞা\n• গুরুত্বপূর্ণ সূত্র ও উদাহরণ\n\nবিস্তারিত নোট ও PDF শিক্ষক শীঘ্রই যোগ করবেন।`);
   res.json({ ok: true, chapterId: id, state: getState() });
+});
+
+app.put('/api/chapters/:id', (req, res) => {
+  const { name } = req.body ?? {};
+  if (!name?.trim()) return res.status(400).json({ error: 'Chapter name required' });
+  const ch = db.prepare('SELECT * FROM chapters WHERE id = ?').get(req.params.id);
+  if (!ch) return res.status(404).json({ error: 'Chapter not found' });
+  const mcqTitle = ch.mcq_title?.includes('— MCQ Test') ? `${name.trim()} — MCQ Test` : ch.mcq_title;
+  db.prepare('UPDATE chapters SET name = ?, mcq_title = ? WHERE id = ?').run(name.trim(), mcqTitle, req.params.id);
+  res.json({ ok: true, state: getState() });
 });
 
 app.delete('/api/chapters/:id', (req, res) => {

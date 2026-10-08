@@ -11,7 +11,7 @@ fav.rel = 'icon';
 fav.type = 'image/png';
 fav.href = '/logo.png';
 document.head.appendChild(fav);
-document.title = 'Josephite Learning — St. Josephite School & College, Banpara, Natore';
+document.title = "Josephite Learning — St. Joseph's School & College, Banpara, Natore";
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

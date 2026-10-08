@@ -37,6 +37,7 @@ export default function AdminPanel() {
   const [editUser, setEditUser] = useState<EditUser | null>(null);
   // edit notice (modal)
   const [editNotice, setEditNotice] = useState<{ id: string; title: string; body: string } | null>(null);
+  const [renameCh, setRenameCh] = useState<{ id: string; name: string } | null>(null);
   // confirm dialog
   const [confirmState, setConfirmState] = useState<{ title: string; message: string; action: () => void } | null>(null);
   // chapter management
@@ -150,6 +151,43 @@ export default function AdminPanel() {
                 {...btnPrimary()}
               >
                 Save Changes
+              </button>
+            </div>
+          </Card>
+        )}
+      </Modal>
+
+      {/* Rename chapter modal */}
+      <Modal open={!!renameCh} onClose={() => setRenameCh(null)}>
+        {renameCh && (
+          <Card className="space-y-3 p-6">
+            <p className="text-lg font-bold text-slate-900">Chapter-এর নাম পরিবর্তন</p>
+            <input
+              className={inputCls()}
+              placeholder="নতুন Chapter নাম"
+              value={renameCh.name}
+              autoFocus
+              onChange={(e) => setRenameCh({ ...renameCh, name: e.target.value })}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && renameCh.name.trim()) {
+                  mutate(`/chapters/${renameCh.id}`, 'PUT', { name: renameCh.name.trim() })
+                    .then(() => { setRenameCh(null); toast('success', 'Chapter-এর নাম পরিবর্তন হয়েছে ✓'); })
+                    .catch((err) => toast('error', (err as Error).message));
+                }
+              }}
+            />
+            <div className="flex justify-end gap-3 pt-2">
+              <button onClick={() => setRenameCh(null)} {...btnGhost()}>Cancel</button>
+              <button
+                disabled={!renameCh.name.trim()}
+                onClick={() => {
+                  mutate(`/chapters/${renameCh.id}`, 'PUT', { name: renameCh.name.trim() })
+                    .then(() => { setRenameCh(null); toast('success', 'Chapter-এর নাম পরিবর্তন হয়েছে ✓'); })
+                    .catch((err) => toast('error', (err as Error).message));
+                }}
+                {...btnPrimary()}
+              >
+                Save
               </button>
             </div>
           </Card>
@@ -450,6 +488,13 @@ export default function AdminPanel() {
                           {chs.map((ch) => (
                             <span key={ch.id} className="inline-flex items-center gap-1.5 rounded-lg bg-white px-2.5 py-1 text-xs font-medium text-slate-700 ring-1 ring-slate-200">
                               {ch.order}. {ch.name}
+                              <button
+                                title="Rename chapter"
+                                onClick={() => setRenameCh({ id: ch.id, name: ch.name })}
+                                className="font-bold text-indigo-500 hover:text-indigo-700"
+                              >
+                                ✎
+                              </button>
                               <button
                                 title="Delete chapter"
                                 onClick={() => askDelete('Chapter মুছবেন?', `"${ch.name}" অধ্যায় ও এর সব Lecture, Notes, Practice, MCQ মুছে যাবে।`, () => mutate(`/chapters/${ch.id}`, 'DELETE').catch((e) => toast('error', e.message)))}

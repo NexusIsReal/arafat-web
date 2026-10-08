@@ -19,7 +19,7 @@ async function api(path, method = 'GET', body) {
   const st = await api('/api/state');
   const db = st.data;
   ok('GET /api/state 200', st.status === 200);
-  ok('school info (St. Josephite)', db.school?.nameEn === 'St. Josephite School & College' && db.school?.facebook === 'https://www.facebook.com/sjscb');
+  ok("school info (St. Joseph's)", db.school?.nameEn === "St. Joseph's School & College" && db.school?.facebook === 'https://www.facebook.com/sjscb');
   ok('school about + tagline present', !!db.school?.about && db.school?.tagline === 'Empowering Knowledge, Building Futures');
   ok('classes = 5', db.classes.length === 5);
   ok('subjects = 51 (papers split + BGS/Rel/HIM)', db.subjects.length === 51);
@@ -136,6 +136,8 @@ async function api(path, method = 'GET', body) {
   const ncId = NC.data.chapterId;
   const nc = NC.data.state.chapters.find(c => c.id === ncId);
   ok('add chapter (order=4, default note)', NC.status === 200 && nc.order === 4 && nc.notes.length === 1);
+  const RN = await api(`/api/chapters/${ncId}`, 'PUT', { name: 'Renamed Chapter' });
+  ok('rename chapter', RN.status === 200 && RN.data.state.chapters.find(c => c.id === ncId).name === 'Renamed Chapter' && RN.data.state.chapters.find(c => c.id === ncId).mcq.title === 'Renamed Chapter — MCQ Test');
   const nl = await api(`/api/chapters/${ncId}/lectures`, 'POST', { title: 'Temp Lecture', videoUrl: 'https://www.youtube.com/embed/x' });
   const nlCh = nl.data.state.chapters.find(c => c.id === ncId);
   const dl = await api(`/api/lectures/${nlCh.lectures[0].id}`, 'DELETE');
