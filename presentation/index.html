@@ -1,0 +1,672 @@
+<!doctype html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Josephite Learning — প্রেজেন্টেশন</title>
+  <style>
+    :root {
+      --ink: #f8fafc;
+      --muted: #c7d2fe;
+      --dim: #94a3b8;
+      --amber: #fbbf24;
+      --indigo: #818cf8;
+      --line: rgba(255, 255, 255, 0.12);
+      --card: rgba(255, 255, 255, 0.045);
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: #07091a;
+      color: var(--ink);
+      font-family: "Nirmala UI", "Segoe UI", sans-serif;
+      overflow: hidden;
+    }
+    #viewport {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+    #stage {
+      width: 1600px;
+      height: 900px;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      overflow: hidden;
+      background:
+        radial-gradient(900px 520px at 12% -10%, rgba(79, 70, 229, 0.45), transparent 60%),
+        radial-gradient(700px 480px at 110% 110%, rgba(251, 191, 36, 0.14), transparent 55%),
+        #0e1230;
+      transform-origin: center center;
+    }
+    .glow {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(8px);
+      pointer-events: none;
+      will-change: transform;
+      z-index: 0;
+    }
+    #glow1 { width: 420px; height: 420px; left: -80px; top: -90px; background: rgba(99, 102, 241, 0.35); }
+    #glow2 { width: 340px; height: 340px; right: -60px; bottom: -80px; background: rgba(251, 191, 36, 0.16); }
+    #bar {
+      position: absolute;
+      left: 0; top: 0;
+      height: 5px;
+      width: 100%;
+      background: linear-gradient(90deg, #6366f1, #fbbf24);
+      transform: scaleX(0);
+      transform-origin: left center;
+      z-index: 6;
+      will-change: transform;
+    }
+    .slide {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      padding: 64px 76px 108px;
+      visibility: hidden;
+    }
+    .kicker {
+      margin: 0;
+      color: var(--amber);
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+    h1 {
+      margin: 10px 0 0;
+      font-size: 56px;
+      line-height: 1.12;
+      font-weight: 800;
+    }
+    .hero-title { font-size: 92px; letter-spacing: -0.03em; }
+    .amber { color: var(--amber); }
+    .rule {
+      width: 180px;
+      height: 7px;
+      margin: 22px 0;
+      border-radius: 99px;
+      background: var(--amber);
+      transform-origin: left center;
+      will-change: transform;
+    }
+    .lead { margin: 0; font-size: 26px; line-height: 1.45; color: var(--muted); max-width: 1180px; }
+    .school { margin: 16px 0 0; font-size: 22px; color: #a5b4fc; }
+    .grid { display: grid; gap: 18px; }
+    .g3 { grid-template-columns: repeat(3, 1fr); }
+    .g4 { grid-template-columns: repeat(4, 1fr); }
+    .g2 { grid-template-columns: 1.15fr 0.85fr; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 26px 28px;
+      overflow: hidden;
+      will-change: transform;
+    }
+    .card h2 { margin: 0 0 10px; font-size: 30px; }
+    .card p { margin: 0; font-size: 20px; line-height: 1.45; color: var(--muted); }
+    .num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 58px;
+      height: 36px;
+      padding: 0 10px;
+      border-radius: 10px;
+      background: rgba(129, 140, 248, 0.16);
+      color: var(--indigo);
+      font-weight: 800;
+      font-size: 16px;
+    }
+    .stat { text-align: center; padding: 22px 12px 18px; }
+    .stat b {
+      display: block;
+      font-size: 58px;
+      line-height: 1;
+      color: white;
+    }
+    .stat span { display: block; margin-top: 8px; color: var(--muted); font-size: 18px; }
+    .mt { margin-top: 22px; }
+    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .dark {
+      background: linear-gradient(180deg, rgba(30, 27, 75, 0.9), rgba(15, 18, 48, 0.9));
+    }
+    .tag { color: var(--indigo); font-family: Consolas, "Cascadia Mono", monospace; font-size: 18px; }
+    .steps { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; position: relative; margin-top: 36px; }
+    .step { text-align: center; position: relative; z-index: 1; }
+    .dotn {
+      width: 54px; height: 54px; margin: 0 auto 12px;
+      border-radius: 50%;
+      display: grid; place-items: center;
+      background: #4f46e5;
+      font-weight: 800;
+      font-size: 22px;
+      box-shadow: 0 0 0 8px rgba(79, 70, 229, 0.25);
+    }
+    .step b { display: block; font-size: 22px; margin-bottom: 6px; }
+    .step span { color: var(--muted); font-size: 16px; }
+    .track {
+      position: absolute;
+      left: 7%;
+      right: 7%;
+      top: 26px;
+      height: 4px;
+      background: rgba(129, 140, 248, 0.25);
+      z-index: 0;
+    }
+    .track i {
+      display: block;
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, #818cf8, #fbbf24);
+      transform: scaleX(0);
+      transform-origin: left center;
+      will-change: transform;
+    }
+    .note {
+      margin-top: 28px;
+      padding: 22px 26px;
+      border-radius: 18px;
+      background: rgba(251, 191, 36, 0.1);
+      border: 1px solid rgba(251, 191, 36, 0.28);
+      color: #fde68a;
+      font-size: 22px;
+    }
+    .mono { font-family: Consolas, "Cascadia Mono", monospace; }
+    .file { color: #a5b4fc; font-family: Consolas, monospace; font-size: 20px; font-weight: 700; }
+    .rowline { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 20px; }
+    .rowline span { color: var(--muted); }
+    .flow { display: grid; grid-template-columns: 1fr 70px 1fr 70px 1fr; align-items: center; gap: 8px; }
+    .arrow { text-align: center; font-size: 40px; color: var(--indigo); }
+    .node { text-align: center; padding: 22px 10px; }
+    .node b { display: block; font-size: 32px; }
+    .node span { color: var(--muted); font-size: 18px; }
+    .hot { outline: 1px solid rgba(129, 140, 248, 0.7); background: rgba(79, 70, 229, 0.28); }
+    .rail {
+      position: relative;
+      height: 8px;
+      margin: 8px 40px 0;
+      border-radius: 99px;
+      background: rgba(255,255,255,0.08);
+      overflow: hidden;
+    }
+    .rail i {
+      position: absolute;
+      top: -4px;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--amber);
+      box-shadow: 0 0 16px var(--amber);
+      will-change: transform;
+    }
+    .mini { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .term {
+      background: #070b16;
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 18px 22px 22px;
+      min-height: 560px;
+    }
+    .lights { display: flex; gap: 8px; align-items: center; margin-bottom: 16px; }
+    .lights i { width: 12px; height: 12px; border-radius: 50%; display: block; }
+    .lights .r { background: #f87171; }
+    .lights .y { background: #fbbf24; }
+    .lights .g { background: #34d399; }
+    .lights em { margin-left: 10px; color: #64748b; font-style: normal; font-family: Consolas, monospace; font-size: 16px; }
+    .ln { font-family: Consolas, monospace; font-size: 20px; line-height: 1.55; color: #e2e8f0; white-space: pre; }
+    .c { color: #86efac; }
+    .s { color: #fde68a; }
+    .p { color: #93c5fd; }
+    .list { margin: 8px 0 0; padding: 0; list-style: none; }
+    .list li {
+      font-size: 22px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      color: #e2e8f0;
+    }
+    .list b { color: var(--indigo); margin-right: 12px; }
+    .edge { height: 6px; border-radius: 22px 22px 0 0; margin: -26px -28px 18px; }
+    .chrome {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      z-index: 5;
+      height: 78px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 0 28px 8px 76px;
+    }
+    .chrome button {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: rgba(15, 18, 48, 0.72);
+      color: white;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 18px;
+      border-radius: 12px;
+      height: 46px;
+      padding: 0 16px;
+      cursor: pointer;
+    }
+    .chrome button:hover { background: rgba(79, 70, 229, 0.55); }
+    .dots { display: flex; gap: 8px; align-items: center; }
+    .dots button {
+      width: 11px; height: 11px; padding: 0;
+      border-radius: 99px;
+      background: rgba(255,255,255,0.28);
+      border: 0;
+    }
+    .dots button.on { width: 28px; background: var(--amber); }
+    #pos { margin-left: auto; color: #a5b4fc; font-size: 16px; font-weight: 700; }
+    .hint { color: #94a3b8; font-size: 15px; }
+  </style>
+</head>
+<body>
+  <div id="viewport">
+    <div id="stage">
+      <div id="glow1" class="glow"></div>
+      <div id="glow2" class="glow"></div>
+      <div id="bar"></div>
+
+      <section class="slide">
+        <p class="kicker" data-anim="rise">সায়েন্স ফেয়ার  ·  অফিসিয়াল ই-লার্নিং প্লাটফর্ম</p>
+        <h1 class="hero-title" data-anim="rise">Josephite</h1>
+        <h1 class="hero-title amber" data-anim="rise">Learning</h1>
+        <div class="rule" data-bar></div>
+        <p class="lead" data-anim="rise">শিখুন → অনুশীলন করুন → নিজেকে যাচাই করুন → উন্নতি করুন</p>
+        <p class="school" data-anim="rise">সেন্ট যোসেফস স্কুল এন্ড কলেজ<br>বনপাড়া, বড়াইগ্রাম, নাটোর</p>
+        <div class="grid g4 mt">
+          <div class="card stat" data-anim="pop"><b data-count="5">০</b><span>শ্রেণি</span></div>
+          <div class="card stat" data-anim="pop"><b data-count="51">০</b><span>বিষয়</span></div>
+          <div class="card stat" data-anim="pop"><b data-count="161">০</b><span>অধ্যায়</span></div>
+          <div class="card stat" data-anim="pop"><b data-count="3">০</b><span>ভূমিকা</span></div>
+        </div>
+      </section>
+
+      <section class="slide">
+        <p class="kicker" data-anim="rise">কেন এই প্রজেক্ট</p>
+        <h1 data-anim="rise">ক্লাসের পর পড়া হারিয়ে যায়</h1>
+        <div class="grid g3 mt" style="margin-top:48px">
+          <article class="card" data-anim="pop"><span class="num">০১</span><h2>ভুলে যাওয়া</h2><p>ক্লাসে বোঝার পর বাসায় আর মনে থাকে না। একই অধ্যায় বারবার অনুশীলনের সহজ জায়গা নেই।</p></article>
+          <article class="card" data-anim="pop"><span class="num">০২</span><h2>জিনিস ছড়ানো</h2><p>ভিডিও এক জায়গায়, নোট অন্য জায়গায়, প্রশ্ন আবার আলাদা। সব একসাথে পাওয়া যায় না।</p></article>
+          <article class="card" data-anim="pop"><span class="num">০৩</span><h2>নিজেকে মাপা যায় না</h2><p>পরীক্ষার আগে বোঝা যায় না কোন অধ্যায় দুর্বল। ফল জমলেও ছাত্র নিজে দেখতে পায় না।</p></article>
+        </div>
+      </section>
+
+      <section class="slide">
+        <p class="kicker" data-anim="rise">সমাধান</p>
+        <h1 data-anim="rise">এক জায়গায় পুরো পড়াশোনা</h1>
+        <div class="card dark mt" data-anim="rise" style="margin-top:28px">
+          <p class="kicker">Josephite Learning</p>
+          <p class="lead" style="color:#fff;margin-top:8px">স্কুলের নিজস্ব ওয়েব অ্যাপ — ক্লাস থেকে অধ্যায়, তারপর লেকচার, নোট, প্র্যাকটিস ও MCQ। ফল সাথে সাথে, প্রগ্রেস চোখের সামনে।</p>
+        </div>
+        <div class="grid g4 mt">
+          <article class="card" data-anim="pop"><span class="num">০১</span><h2>লেকচার</h2><p>অধ্যায়ের ভিডিও ক্লাস</p></article>
+          <article class="card" data-anim="pop"><span class="num">০২</span><h2>নোট</h2><p>মূল ধারণা এক পাতায়</p></article>
+          <article class="card" data-anim="pop"><span class="num">০৩</span><h2>প্র্যাকটিস</h2><p>প্রশ্ন ও উত্তর</p></article>
+          <article class="card" data-anim="pop"><span class="num">০৪</span><h2>MCQ টেস্ট</h2><p>সময়সহ কুইজ</p></article>
+        </div>
+      </section>
+
+      <section class="slide">
+        <p class="kicker" data-anim="rise">কে ব্যবহার করে</p>
+        <h1 data-anim="rise">তিন ধরনের অ্যাকাউন্ট</h1>
+        <div class="grid g3 mt" style="margin-top:40px">
+          <article class="card" data-anim="pop"><div class="edge" style="background:#0284c7"></div><h2>শিক্ষার্থী</h2><p>পড়ে, কুইজ দেয়, নিজের ফল ও দুর্বল অধ্যায় দেখে।</p><p class="tag" style="margin-top:18px">student@demo.com</p><p>ড্যাশবোর্ড · প্রগ্রেস · রেজাল্ট</p></article>
+          <article class="card" data-anim="pop"><div class="edge" style="background:#059669"></div><h2>শিক্ষক</h2><p>লেকচার, নোট, প্র্যাকটিস, MCQ ও সাপ্তাহিক পরীক্ষা যোগ করেন।</p><p class="tag" style="margin-top:18px">teacher@demo.com</p><p>টিচার প্যানেল</p></article>
+          <article class="card" data-anim="pop"><div class="edge" style="background:#7c3aed"></div><h2>অ্যাডমিন</h2><p>শিক্ষার্থী, শিক্ষক, ক্লাস, বিষয়, অধ্যায়, নোটিশ ও রেজাল্ট দেখেন।</p><p class="tag" style="margin-top:18px">admin@demo.com</p><p>অ্যাডমিন প্যানেল</p></article>
+        </div>
+      </section>
+
+      <section class="slide">
+        <p class="kicker" data-anim="rise">শিক্ষার্থীর পথ</p>
+        <h1 data-anim="rise">লগইন থেকে প্রগ্রেস পর্যন্ত</h1>
+        <div class="steps">
+          <div class="track"><i data-bar></i></div>
+          <div class="step" data-anim="pop"><div class="dotn">১</div><b>লগইন</b><span>ইমেইল দিয়ে ঢোকে</span></div>
+          <div class="step" data-anim="pop"><div class="dotn">২</div><b>ক্লাস</b><span>নিজের শ্রেণি</span></div>
+          <div class="step" data-anim="pop"><div class="dotn">৩</div><b>বিষয়</b><span>যেমন পদার্থ</span></div>
+          <div class="step" data-anim="pop"><div class="dotn">৪</div><b>অধ্যায়</b><span>লেকচার ও নোট</span></div>
+          <div class="step" data-anim="pop"><div class="dotn">৫</div><b>কুইজ</b><span>সময়সহ MCQ</span></div>
+          <div class="step" data-anim="pop"><div class="dotn">৬</div><b>প্রগ্রেস</b><span>দুর্বল অধ্যায়</span></div>
+        </div>
+        <div class="note" data-anim="rise">সেরা স্কোর ৬০% বা তার বেশি হলে অধ্যায় সম্পন্ন। ড্যাশবোর্ডে দুর্বল অধ্যায় আগে দেখায়।</div>
+      </section>
+
+      <section class="slide">
+        <p class="kicker" data-anim="rise">ভেতরে কী আছে</p>
+        <h1 data-anim="rise">ক্লাস ৬ থেকে ১০, সব অধ্যায় ভরা</h1>
+        <div class="grid g4 mt">
+          <div class="card stat" data-anim="pop"><b data-count="5">০</b><span>শ্রেণি · ষষ্ঠ থেকে দশম</span></div>
+          <div class="card stat" data-anim="pop"><b data-count="51">০</b><span>বিষয় · পেপার আলাদা</span></div>
+          <div class="card stat" data-anim="pop"><b data-count="161">০</b><span>অধ্যায়</span></div>
+          <div class="card stat" data-anim="pop"><b data-count="25">০</b><span>MCQ · প্রতি অধ্যায়ে</span></div>
+        </div>
+        <div class="split mt">
+          <article class="card" data-anim="rise">
+            <p class="kicker">বিষয়</p>
+            <p style="margin-top:12px">ক্লাস ৬–৮: বাংলা, ইংরেজি, গণিত, বিজ্ঞান, ICT, বাংলাদেশ ও বিশ্বপরিচয়, ধর্ম।</p>
+            <p style="margin-top:10px">ক্লাস ৯–১০: সাথে পদার্থবিজ্ঞান, রসায়ন, জীববিজ্ঞান ও উচ্চতর গণিত।</p>
+          </article>
+          <article class="card dark" data-anim="pop">
+            <p class="kicker">নমুনা অধ্যায়</p>
+            <h2 style="margin-top:8px">নবম · পদার্থ<br>গতি (Motion)</h2>
+            <p>২টি লেকচার · ২টি নোট<br>১০টি প্র্যাকটিস · ২৫টি MCQ</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="slide">
+        <p class="kicker" data-anim="rise">যে প্রযুক্তিতে বানানো</p>
+        <h1 data-anim="rise">সামনে React, পেছনে Express ও SQLite</h1>
+        <div class="split mt" style="margin-top:36px">
+          <article class="card" data-anim="left">
+            <p class="kicker">সামনের অংশ</p>
+            <h2 style="font-size:36px">React 18 + TypeScript</h2>
+            <div class="rowline"><b>Vite</b><span>ডেভ সার্ভার ও বিল্ড</span></div>
+            <div class="rowline"><b>Tailwind</b><span>ইন্ডিগো কার্ড, লেআউট</span></div>
+            <div class="rowline"><b>React Router</b><span>হ্যাশ URL — পেজ বদল</span></div>
+          </article>
+          <article class="card dark" data-anim="pop">
+            <p class="kicker">পেছনের অংশ</p>
+            <h2 style="font-size:36px">Express 5 + SQLite</h2>
+            <p>better-sqlite3 দিয়ে এক ফাইল ডেটাবেস। টেবিল: ইউজার, ক্লাস, বিষয়, অধ্যায়, লেকচার, নোট, MCQ, উইকলি এক্সাম, রেজাল্ট, নোটিশ।</p>
+            <p style="margin-top:12px">প্রোডাকশনে Docker, পোর্ট 8080।</p>
+          </article>
+        </div>
+        <div class="note" data-anim="rise">চালু করতে &nbsp; npm run dev &nbsp; → &nbsp; ওয়েব localhost:5173 &nbsp; · &nbsp; API localhost:3001</div>
+      </section>
+
+      <section class="slide">
+        <p class="kicker" data-anim="rise">কোডের মানচিত্র</p>
+        <h1 data-anim="rise">তিনটা ফোল্ডারে পুরো অ্যাপ</h1>
+        <div class="grid g3 mt" style="margin-top:36px">
+          <article class="card" data-anim="pop">
+            <div class="edge" style="background:#4f46e5"></div>
+            <p class="file">src/</p>
+            <p class="dim" style="color:#94a3b8;margin:6px 0 12px">যা স্ক্রিনে দেখা যায়</p>
+            <div class="rowline"><b class="file">App.tsx</b><span>কোন পেজ কার জন্য</span></div>
+            <div class="rowline"><b class="file">context/</b><span>লগইন ও পুরো ডেটা</span></div>
+            <div class="rowline"><b class="file">pages/</b><span>হোম, কুইজ, প্যানেল</span></div>
+            <div class="rowline"><b class="file">progress.ts</b><span>৬০% ও দুর্বল অধ্যায়</span></div>
+          </article>
+          <article class="card" data-anim="pop">
+            <div class="edge" style="background:#059669"></div>
+            <p class="file">server/</p>
+            <p style="color:#94a3b8;margin:6px 0 12px">যা ডেটা রাখে ও দেয়</p>
+            <div class="rowline"><b class="file">index.mjs</b><span>সব API রুট</span></div>
+            <div class="rowline"><b class="file">db.mjs</b><span>SQLite টেবিল</span></div>
+            <div class="rowline"><b class="file">seed.mjs</b><span>প্রথমবার নমুনা ডেটা</span></div>
+            <div class="rowline"><b class="file">chapters*.mjs</b><span>প্রশ্নব্যাংক</span></div>
+          </article>
+          <article class="card" data-anim="pop">
+            <div class="edge" style="background:#7c3aed"></div>
+            <p class="file">data/</p>
+            <p style="color:#94a3b8;margin:6px 0 12px">আসল তথ্য</p>
+            <div class="rowline"><b class="file">elearning.db</b><span>এক ফাইলে সব</span></div>
+            <div class="rowline"><b>ইউজার</b><span>ছাত্র, শিক্ষক, অ্যাডমিন</span></div>
+            <div class="rowline"><b>কনটেন্ট</b><span>অধ্যায়, নোট, MCQ</span></div>
+            <div class="rowline"><b>রেজাল্ট</b><span>প্রতিটি কুইজের ফল</span></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="slide">
+        <p class="kicker" data-anim="rise">একটা ক্লিকের পথ</p>
+        <h1 data-anim="rise">ব্রাউজার, সার্ভার, ডেটাবেস</h1>
+        <div class="flow mt" style="margin-top:28px">
+          <article class="card node" data-anim="pop"><b>React</b><span>পেজ ও কুইজ</span></article>
+          <div class="arrow" data-anim="rise">→</div>
+          <article class="card node hot" data-anim="pop"><b>Express</b><span>/api/…</span></article>
+          <div class="arrow" data-anim="rise">→</div>
+          <article class="card node" data-anim="pop"><b>SQLite</b><span>elearning.db</span></article>
+        </div>
+        <div class="rail" data-track><i data-mover></i></div>
+        <div class="mini mt">
+          <article class="card" data-anim="rise"><h2 style="font-size:24px">১ &nbsp; অ্যাপ খুললে</h2><p>GET /api/state — পুরো স্কুল, কনটেন্ট ও রেজাল্ট একবারে আসে।</p></article>
+          <article class="card" data-anim="rise"><h2 style="font-size:24px">২ &nbsp; লগইন</h2><p>সার্ভার ইমেইল ও পাসওয়ার্ড মিলায়। ব্রাউজার শুধু ইউজার আইডি রাখে।</p></article>
+          <article class="card" data-anim="rise"><h2 style="font-size:24px">৩ &nbsp; কুইজ জমা</h2><p>POST /api/results — স্কোর, উত্তর ও ব্যাখ্যা SQLite-এ লেখা হয়।</p></article>
+          <article class="card" data-anim="rise"><h2 style="font-size:24px">৪ &nbsp; স্ক্রিন আপডেট</h2><p>সার্ভার নতুন স্টেট ফেরত দেয়। ড্যাশবোর্ড সাথে সাথে বদলায়।</p></article>
+        </div>
+      </section>
+
+      <section class="slide">
+        <p class="kicker" data-anim="rise">কুইজের ভিতরের কোড</p>
+        <h1 data-anim="rise">টাইমার শেষ হলে স্কোর নিজে জমা হয়</h1>
+        <div class="split mt" style="margin-top:28px;align-items:stretch">
+          <div>
+            <article class="card" data-anim="rise" style="margin-bottom:14px"><h2 style="font-size:24px">টাইমার</h2><p>প্রশ্নের সংখ্যা × ১ মিনিট। সময় শেষে অটো সাবমিট।</p></article>
+            <article class="card" data-anim="rise" style="margin-bottom:14px"><h2 style="font-size:24px">মিলিয়ে দেখা</h2><p>যে উত্তর correctIndex-এর সাথে মেলে, সেটাই সঠিক।</p></article>
+            <article class="card" data-anim="rise" style="margin-bottom:14px"><h2 style="font-size:24px">সেভ</h2><p>সার্ভার শতাংশ বের করে results টেবিলে লেখে।</p></article>
+            <article class="card" data-anim="rise"><h2 style="font-size:24px">রিভিউ</h2><p>রেজাল্ট পেজে প্রশ্ন, আপনার উত্তর ও ব্যাখ্যা।</p></article>
+          </div>
+          <div class="term" data-anim="pop">
+            <div class="lights"><i class="r"></i><i class="y"></i><i class="g"></i><em>QuizPage.tsx</em></div>
+            <div class="ln" data-anim="code"><span class="p">mutate</span>(<span class="s">'/results'</span>, <span class="s">'POST'</span>, {</div>
+            <div class="ln" data-anim="code">  userId: user.id,</div>
+            <div class="ln" data-anim="code">  type, refId, title,</div>
+            <div class="ln" data-anim="code">  total: questions.length,</div>
+            <div class="ln" data-anim="code">  obtained: correct,</div>
+            <div class="ln" data-anim="code">  answers: snapshot,</div>
+            <div class="ln" data-anim="code">});</div>
+            <div class="ln" data-anim="code"><span class="p">nav</span>(<span class="s">`/result/${data.resultId}`</span>);</div>
+            <div class="ln" data-anim="code"> </div>
+            <div class="ln" data-anim="code"><span class="c">// server/index.mjs</span></div>
+            <div class="ln" data-anim="code">percentage = Math.round(</div>
+            <div class="ln" data-anim="code">  (obtained / total) * 100</div>
+            <div class="ln" data-anim="code">);</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide">
+        <p class="kicker" data-anim="rise">কনটেন্ট কে যোগ করে</p>
+        <h1 data-anim="rise">শিক্ষক পড়ান, অ্যাডমিন স্কুল চালান</h1>
+        <div class="split mt" style="margin-top:32px">
+          <article class="card" data-anim="left">
+            <div class="edge" style="background:#059669"></div>
+            <h2>টিচার প্যানেল</h2>
+            <ul class="list">
+              <li data-anim="rise"><b>০১</b>অধ্যায়ে লেকচারের ইউটিউব লিংক</li>
+              <li data-anim="rise"><b>০২</b>নোট ও প্র্যাকটিস যোগ বা মুছা</li>
+              <li data-anim="rise"><b>০৩</b>MCQ — ৪টি অপশন, সঠিক উত্তর</li>
+              <li data-anim="rise"><b>০৪</b>টেস্টের সময় মিনিটে সেট</li>
+              <li data-anim="rise"><b>০৫</b>সাপ্তাহিক পরীক্ষা ও প্রশ্ন</li>
+              <li data-anim="rise"><b>০৬</b>ছাত্রদের রেজাল্ট দেখা</li>
+            </ul>
+          </article>
+          <article class="card" data-anim="pop">
+            <div class="edge" style="background:#7c3aed"></div>
+            <h2>অ্যাডমিন প্যানেল</h2>
+            <ul class="list">
+              <li data-anim="rise"><b>০১</b>শিক্ষার্থী ও শিক্ষক যোগ</li>
+              <li data-anim="rise"><b>০২</b>ক্লাস, বিষয়, অধ্যায় তৈরি</li>
+              <li data-anim="rise"><b>০৩</b>নোটিশ বোর্ড</li>
+              <li data-anim="rise"><b>০৪</b>যেকোনো রেজাল্ট মুছা</li>
+              <li data-anim="rise"><b>০৫</b>টিচার প্যানেলও খোলা যায়</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="slide">
+        <p class="kicker" data-anim="rise">লাইভ ডেমো</p>
+        <h1 data-anim="rise">এখনই খুলে দেখানো যায়</h1>
+        <div class="grid g3 mt" style="margin-top:28px">
+          <article class="card" data-anim="pop"><p class="kicker">শিক্ষার্থী</p><p class="tag">student@demo.com</p><p style="margin-top:8px">আরাফাত · ক্লাস ৯</p></article>
+          <article class="card" data-anim="pop"><p class="kicker">শিক্ষক</p><p class="tag">teacher@demo.com</p><p style="margin-top:8px">কাউসার সরকার · ICT</p></article>
+          <article class="card" data-anim="pop"><p class="kicker">অ্যাডমিন</p><p class="tag">admin@demo.com</p><p style="margin-top:8px">প্রধান শিক্ষক</p></article>
+        </div>
+        <div class="note" data-anim="rise">পাসওয়ার্ড সবার জন্য demo123 &nbsp; · &nbsp; start.bat অথবা npm run dev &nbsp; · &nbsp; localhost:5173</div>
+        <h1 class="amber" data-anim="rise" style="margin-top:28px;font-size:72px">ধন্যবাদ</h1>
+        <p class="school" data-anim="rise">Learn → Practice → Test → Improve</p>
+      </section>
+
+      <div class="chrome">
+        <button id="prev" type="button">← আগে</button>
+        <div class="dots" id="dots"></div>
+        <button id="next" type="button">পরে →</button>
+        <span class="hint">তীরের চাবি · স্পেস · F ফুলস্ক্রিন</span>
+        <span id="pos">০১ / ১২</span>
+        <button id="full" type="button">ফুলস্ক্রিন</button>
+      </div>
+    </div>
+  </div>
+  <script src="gsap.min.js"></script>
+  <script>
+    const BN = "০১২৩৪৫৬৭৮৯";
+    const toBn = (n) => String(n).replace(/\d/g, (d) => BN[d]);
+    const stage = document.getElementById("stage");
+    const slides = [...document.querySelectorAll(".slide")];
+    const dots = document.getElementById("dots");
+    let index = 0;
+    let busy = false;
+    let reduce = false;
+    let playing = null;
+    let loopTween = null;
+
+    function fit() {
+      const s = Math.min(window.innerWidth / 1600, window.innerHeight / 900);
+      stage.style.transform = "translate(-50%, -50%) scale(" + s + ")";
+    }
+    fit();
+    window.addEventListener("resize", fit);
+
+    slides.forEach((_, i) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.addEventListener("click", () => go(i));
+      dots.appendChild(b);
+    });
+
+    function dur(n) { return reduce ? 0 : n; }
+
+    function insides(slide) {
+      const tl = gsap.timeline();
+      const rise = slide.querySelectorAll('[data-anim="rise"]');
+      const pop = slide.querySelectorAll('[data-anim="pop"]');
+      const left = slide.querySelectorAll('[data-anim="left"]');
+      const code = slide.querySelectorAll('[data-anim="code"]');
+      if (rise.length) {
+        tl.from(rise, { y: reduce ? 0 : 28, autoAlpha: 0, stagger: dur(0.06), duration: dur(0.55), ease: "power3.out" }, 0);
+      }
+      if (pop.length) {
+        tl.from(pop, { y: reduce ? 0 : 24, scale: reduce ? 1 : 0.92, autoAlpha: 0, stagger: dur(0.07), duration: dur(0.55), ease: "back.out(1.5)" }, 0.04);
+      }
+      if (left.length) {
+        tl.from(left, { x: reduce ? 0 : -40, autoAlpha: 0, duration: dur(0.55), ease: "power3.out" }, 0.05);
+      }
+      if (code.length) {
+        tl.from(code, { x: reduce ? 0 : -18, autoAlpha: 0, stagger: dur(0.045), duration: dur(0.35), ease: "power2.out" }, 0.12);
+      }
+      slide.querySelectorAll("[data-bar]").forEach((el) => {
+        tl.fromTo(el, { scaleX: 0 }, { scaleX: 1, duration: dur(0.9), ease: "power2.inOut" }, 0.15);
+      });
+      slide.querySelectorAll("[data-count]").forEach((el) => {
+        const end = Number(el.dataset.count);
+        const obj = { n: 0 };
+        tl.to(obj, {
+          n: end,
+          duration: dur(1.05),
+          ease: "power2.out",
+          onUpdate: () => { el.textContent = toBn(Math.round(obj.n)); },
+        }, 0.2);
+      });
+      const track = slide.querySelector("[data-track]");
+      const mover = slide.querySelector("[data-mover]");
+      if (track && mover && !reduce) {
+        const dist = Math.max(40, track.clientWidth - 16);
+        loopTween?.kill();
+        loopTween = gsap.fromTo(mover, { x: 0 }, {
+          x: dist, duration: 1.5, ease: "power1.inOut", repeat: -1, yoyo: true,
+        });
+      }
+      return tl;
+    }
+
+    function paint() {
+      [...dots.children].forEach((d, i) => d.classList.toggle("on", i === index));
+      document.getElementById("pos").textContent = toBn(index + 1) + " / " + toBn(slides.length);
+      gsap.to("#bar", { scaleX: (index + 1) / slides.length, duration: dur(0.45), ease: "power2.out", overwrite: "auto" });
+    }
+
+    function go(next) {
+      if (next < 0 || next >= slides.length || next === index || busy) return;
+      busy = true;
+      loopTween?.kill();
+      loopTween = null;
+      const dir = next > index ? 1 : -1;
+      const from = slides[index];
+      const to = slides[next];
+      playing?.kill();
+      const tl = gsap.timeline({
+        onComplete: () => { busy = false; playing = null; },
+      });
+      playing = tl;
+      tl.to(from, { x: -90 * dir, autoAlpha: 0, duration: dur(0.36), ease: "power2.in" });
+      tl.fromTo(to, { x: 90 * dir, autoAlpha: 0 }, { x: 0, autoAlpha: 1, duration: dur(0.48), ease: "power3.out" }, "<0.1");
+      tl.add(insides(to), "<0.12");
+      index = next;
+      paint();
+    }
+
+    function boot() {
+      busy = true;
+      gsap.set(slides, { autoAlpha: 0, x: 0 });
+      gsap.set("#bar", { scaleX: 0 });
+      const first = slides[0];
+      const tl = gsap.timeline({
+        onComplete: () => { busy = false; playing = null; },
+      });
+      playing = tl;
+      tl.to(first, { autoAlpha: 1, duration: dur(0.35), ease: "power2.out" });
+      tl.add(insides(first), 0.05);
+      paint();
+    }
+
+    document.getElementById("next").addEventListener("click", () => go(index + 1));
+    document.getElementById("prev").addEventListener("click", () => go(index - 1));
+    document.getElementById("full").addEventListener("click", () => {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    });
+
+    window.addEventListener("keydown", (e) => {
+      if (["ArrowRight", "PageDown", " "].includes(e.key)) { e.preventDefault(); go(index + 1); }
+      else if (["ArrowLeft", "PageUp", "Backspace"].includes(e.key)) { e.preventDefault(); go(index - 1); }
+      else if (e.key === "Home") go(0);
+      else if (e.key === "End") go(slides.length - 1);
+      else if (e.key === "f" || e.key === "F") {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+        else document.exitFullscreen();
+      }
+    });
+
+    let touchX = 0;
+    stage.addEventListener("touchstart", (e) => { touchX = e.changedTouches[0].clientX; }, { passive: true });
+    stage.addEventListener("touchend", (e) => {
+      const dx = e.changedTouches[0].clientX - touchX;
+      if (dx < -50) go(index + 1);
+      else if (dx > 50) go(index - 1);
+    }, { passive: true });
+
+    const mm = gsap.matchMedia();
+    mm.add("(prefers-reduced-motion: reduce)", () => {
+      reduce = true;
+      return () => { reduce = false; };
+    });
+    mm.add("(prefers-reduced-motion: no-preference)", () => {
+      gsap.to("#glow1", { x: 70, y: 40, duration: 7, repeat: -1, yoyo: true, ease: "sine.inOut" });
+      gsap.to("#glow2", { x: -50, y: -36, duration: 9, repeat: -1, yoyo: true, ease: "sine.inOut" });
+    });
+
+    boot();
+  </script>
+</body>
+</html>
